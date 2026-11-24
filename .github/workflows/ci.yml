@@ -43,7 +43,8 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest
+          # On failure, print each failing test so it shows in the job log.
+          script: ./gradlew connectedDebugAndroidTest || (grep -h -B1 -A25 '<failure' app/build/outputs/androidTest-results/connected/debug/*.xml; exit 1)
 
       - name: Upload test reports
         if: always()

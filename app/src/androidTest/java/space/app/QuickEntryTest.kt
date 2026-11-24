@@ -1,10 +1,11 @@
 package space.app
 
+import android.Manifest
 import android.content.Intent
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -12,6 +13,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import java.util.UUID
 import org.junit.Rule
 import org.junit.Test
@@ -20,7 +22,11 @@ import space.app.capture.QuickEntryActivity
 
 @RunWith(AndroidJUnit4::class)
 class QuickEntryTest {
-    @get:Rule
+    // MainActivity asks for notifications at launch; the dialog would cover the app.
+    @get:Rule(order = 0)
+    val notificationsAllowed: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.POST_NOTIFICATIONS)
+
+    @get:Rule(order = 1)
     val compose = createAndroidComposeRule<MainActivity>()
 
     @Test

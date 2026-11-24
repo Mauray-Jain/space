@@ -94,6 +94,7 @@ class ReminderTest {
         assertEquals(later.plusDays(1), repo.get(id)!!.remindAt)
         assertTrue(reminders.isArmed(id))
         repo.delete(repo.get(id)!!)
+        Unit
     }
 
     @Test
@@ -105,6 +106,7 @@ class ReminderTest {
         assertEquals(later.plusMinutes(30), snoozed.snoozedUntil)
         assertTrue(reminders.isArmed(id))
         repo.delete(snoozed)
+        Unit
     }
 
     // EDGE_CASES.md §8: alarms are gone after a reboot; the boot receiver sets them again.
@@ -116,6 +118,7 @@ class ReminderTest {
         actions.rearmAll()
         assertTrue(reminders.isArmed(id))
         repo.delete(repo.get(id)!!)
+        Unit
     }
 
     @Test

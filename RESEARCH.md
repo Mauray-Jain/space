@@ -19,13 +19,9 @@
 
 Runtime: **sherpa-onnx** runs all three from one Android library, so we can swap models without rewriting code.
 
-### Understanding (intent) options, lightest first
+**Takeaway:** the big apps (Nothing, Todoist) use cloud models, and Google's own is on-device but only on Pixels.
 
-1. **No model:** keyword rules + **ML Kit Entity Extraction** (dates, times, addresses, phone numbers, URLs). A few MB, instant, offline.
-2. **FunctionGemma 270M:** Gemma 3 270M tuned to turn a sentence into an action ("create reminder", "create calendar event"). Runs through LiteRT-LM. Google's Mobile Actions demo shows 58% accuracy out of the box and **85% after fine-tuning**.
-3. **Gemini Flash-Lite via Firebase AI Logic:** cloud, for screenshots and messy input. This is the same family Todoist uses. The free (Spark) plan lets Google use your data; the paid plan doesn't.
-
-**Takeaway:** the big apps (Nothing, Todoist) use cloud models, and Google's own is on-device but only on Pixels. A light, local-first app can realistically do: **Moonshine or Whisper base → rules + entity extraction → (optional) FunctionGemma → (optional) Gemini for screenshots.**
+**What we chose** (details in [PLAN.md §2](PLAN.md)): Moonshine → our own rules and date parser (MiniLM only if the rules fail the tests) → PaddleOCR + ZXing for images. No ML Kit, no Gemini, no cloud. We also looked at ML Kit entity extraction, FunctionGemma and Gemini Flash-Lite, and rejected them: they use Google libraries, are heavier, or run in the cloud.
 
 ---
 
@@ -67,7 +63,7 @@ Source: the official "Essential Space | Feature Wishlist" thread on Nothing Comm
 - Light theme for the app independent of system dark mode
 
 ### Already in our plan
-Edit everything, plain notes/to-dos, search, Markdown export (Obsidian), local Whisper, optional Calendar, works offline, key remap (via accessibility), real deletion (this also fixes the "deleted items come back from Google" bug).
+Edit everything, plain notes/to-dos, search, Markdown export (Obsidian), local transcription (Moonshine), optional calendar (any calendar on the phone, so Outlook/Proton too), works offline, key remap (via accessibility), real deletion (this also fixes the "deleted items come back from Google" bug). Location reminders and more languages are planned for v2.
 
 ## Sources
 - [Nothing Community: Essential Space Feature Wishlist](https://nothing.community/d/28946-essential-space-feature-wishlist)

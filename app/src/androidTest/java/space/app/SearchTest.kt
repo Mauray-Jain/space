@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import space.app.data.ItemRepository
 import space.app.data.ItemType
 import space.app.data.SpaceDatabase
+import space.app.remind.Reminders
 
 // EDGE_CASES.md §10.
 @RunWith(AndroidJUnit4::class)
@@ -23,12 +24,14 @@ class SearchTest {
     private lateinit var repo: ItemRepository
 
     @Before
-    fun open() = runBlocking {
+    fun open() {
         db = SpaceDatabase.build(context, dbName)
-        repo = ItemRepository(db, context)
-        repo.add(ItemType.NOTE, "dentist thursday")
-        repo.add(ItemType.NOTE, "wifi password hunter2")
-        repo.add(ItemType.NOTE, "parent meeting")
+        repo = ItemRepository(db, context, Reminders(context, Settings(context)))
+        runBlocking {
+            repo.add(ItemType.NOTE, "dentist thursday")
+            repo.add(ItemType.NOTE, "wifi password hunter2")
+            repo.add(ItemType.NOTE, "parent meeting")
+        }
     }
 
     @After

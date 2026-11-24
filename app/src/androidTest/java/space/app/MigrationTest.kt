@@ -1,45 +1,57 @@
 package space.app
 
-import androidx.room.testing.MigrationTestHelper
+import android.content.Context
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
+import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Rule
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
+import space.app.data.ItemRepository
+import space.app.data.ItemType
+import space.app.data.SEARCH_INDEX_SQL
 import space.app.data.SpaceDatabase
+import space.app.remind.Reminders
 
-// Items saved by an older version must survive the upgrade.
+// Items saved by the first version must survive every upgrade, still searchable.
 @RunWith(AndroidJUnit4::class)
 class MigrationTest {
-    private val instrumentation = InstrumentationRegistry.getInstrumentation()
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val name = "migration-test.db"
 
-    @get:Rule
-    val helper = MigrationTestHelper(
-        instrumentation = instrumentation,
-        file = instrumentation.targetContext.getDatabasePath("migration-test.db"),
-        driver = BundledSQLiteDriver(),
-        databaseClass = SpaceDatabase::class,
-    )
+    @After
+    fun clean() {
+        context.deleteDatabase(name)
+    }
 
     @Test
-    fun v1ToLatestKeepsItems() {
-        helper.createDatabase(1).apply {
+    fun v1ToLatestKeepsItemsAndSearch() = runBlocking {
+        context.deleteDatabase(name)
+        // The database exactly as version 1 created it (app/schemas/.../1.json).
+        BundledSQLiteDriver().open(context.getDatabasePath(name).path).apply {
+            execSQL("CREATE TABLE items (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, type TEXT NOT NULL, text TEXT NOT NULL, createdAt INTEGER NOT NULL)")
+            SEARCH_INDEX_SQL.forEach { execSQL(it) }
             execSQL("INSERT INTO items (id, type, text, createdAt) VALUES (1, 'TASK', 'call the bank', 42)")
+            execSQL("PRAGMA user_version = 1")
             close()
         }
-        val db = helper.runMigrationsAndValidate(SpaceDatabase.VERSION)
-        db.prepare("SELECT text, type, pinned, archived, done, updatedAt FROM items WHERE id = 1").use {
-            it.step()
-            assertEquals("call the bank", it.getText(0))
-            assertEquals("TASK", it.getText(1))
-            assertEquals(0L, it.getLong(2))
-            assertEquals(0L, it.getLong(3))
-            assertEquals(0L, it.getLong(4))
-            assertEquals(42L, it.getLong(5))
-        }
+
+        val db = SpaceDatabase.build(context, name)
+        val repo = ItemRepository(db, context, Reminders(context, Settings(context)))
+        val item = repo.get(1)!!
+        assertEquals("call the bank", item.text)
+        assertEquals(ItemType.TASK, item.type)
+        assertEquals(42L, item.updatedAt)
+        assertFalse(item.pinned || item.archived || item.done || item.notified)
+        assertEquals(listOf(1L), repo.search("bank").map { it.id })
+
+        // The search triggers survived too.
+        repo.update(item.copy(text = "call the dentist"))
+        assertEquals(listOf(1L), repo.search("dentist").map { it.id })
         db.close()
     }
 }

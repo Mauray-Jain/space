@@ -25,7 +25,7 @@ class QuickEntryActivity : ComponentActivity() {
             SpaceTheme {
                 QuickEntrySheet(
                     initialText = initialText,
-                    onSave = { type, text -> viewModel.save(type, text); finish() },
+                    onSave = { type, text, at -> viewModel.save(type, text, at); finish() },
                     onDismiss = { finish() },
                 )
             }

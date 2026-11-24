@@ -53,13 +53,22 @@ fun EditorScreen(item: Item, onSave: (Item) -> Unit, onDelete: (Item) -> Unit, o
     var archived by rememberSaveable(item.id) { mutableStateOf(item.archived) }
     val subtasks = remember(item.id) { mutableStateListOf(*original.subtasks.toTypedArray()) }
     var newTag by rememberSaveable(item.id) { mutableStateOf("") }
+    var remindAt by rememberSaveable(item.id) { mutableStateOf(item.remindAt ?: defaultReminderTime()) }
+    var repeat by rememberSaveable(item.id) { mutableStateOf(item.repeat) }
 
-    fun edited() = item.copy(
-        text = Checklist(body, if (type == ItemType.TASK) subtasks.toList() else emptyList()).toText(),
-        type = type,
-        pinned = pinned,
-        archived = archived,
-    )
+    fun edited(): Item {
+        val isReminder = type == ItemType.REMINDER
+        val e = item.copy(
+            text = Checklist(body, if (type == ItemType.TASK) subtasks.toList() else emptyList()).toText(),
+            type = type,
+            pinned = pinned,
+            archived = archived,
+            remindAt = remindAt.takeIf { isReminder },
+            repeat = repeat.takeIf { isReminder },
+        )
+        // A new time clears the snooze and makes the reminder live again (EDGE_CASES.md §8).
+        return if (e.remindAt != item.remindAt || e.repeat != item.repeat) e.copy(snoozedUntil = null, notified = false, done = false) else e
+    }
 
     fun back() {
         val e = edited()
@@ -95,7 +104,12 @@ fun EditorScreen(item: Item, onSave: (Item) -> Unit, onDelete: (Item) -> Unit, o
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(selected = type == ItemType.NOTE, onClick = { type = ItemType.NOTE }, label = { Text("Note") })
                     FilterChip(selected = type == ItemType.TASK, onClick = { type = ItemType.TASK }, label = { Text("Task") })
+                    FilterChip(selected = type == ItemType.REMINDER, onClick = { type = ItemType.REMINDER }, label = { Text("Reminder") })
                 }
+            }
+            if (type == ItemType.REMINDER) {
+                WhenPicker(remindAt) { remindAt = it }
+                RepeatPicker(repeat, remindAt) { repeat = it }
             }
 
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.Center) {

@@ -19,6 +19,9 @@ interface ItemDao {
     @Query("SELECT * FROM items")
     fun observeAll(): Flow<List<Item>>
 
+    @Query("SELECT * FROM items WHERE remindAt IS NOT NULL")
+    suspend fun withReminders(): List<Item>
+
     @Query("SELECT * FROM items WHERE id = :id")
     suspend fun get(id: Long): Item?
 

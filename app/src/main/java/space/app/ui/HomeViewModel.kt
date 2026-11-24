@@ -3,6 +3,7 @@ package space.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDateTime
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -62,8 +63,8 @@ class HomeViewModel @Inject constructor(private val repo: ItemRepository) : View
         }
     }
 
-    fun add(type: ItemType, text: String) {
-        viewModelScope.launch { repo.add(type, text) }
+    fun add(type: ItemType, text: String, remindAt: LocalDateTime? = null) {
+        viewModelScope.launch { repo.add(type, text, remindAt) }
     }
 
     fun save(item: Item) {

@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.room.useWriterConnection
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import space.app.remind.Reminders
 
 /** What a delete took away, kept only in memory so Undo can put it back (EDGE_CASES.md §9). */
 class Deleted internal constructor(val item: Item, internal val files: Map<String, ByteArray>)
@@ -17,6 +19,7 @@ class Deleted internal constructor(val item: Item, internal val files: Map<Strin
 class ItemRepository @Inject constructor(
     private val db: SpaceDatabase,
     @ApplicationContext context: Context,
+    private val reminders: Reminders,
 ) {
     private val dao = db.itemDao()
     private val itemsDir = File(context.filesDir, "items")
@@ -26,13 +29,22 @@ class ItemRepository @Inject constructor(
     suspend fun get(id: Long): Item? = dao.get(id)
 
     /** Saves a capture. Shopping text becomes one item per line or comma. Returns the last id. */
-    suspend fun add(type: ItemType, text: String): Long {
+    suspend fun add(type: ItemType, text: String, remindAt: LocalDateTime? = null, repeat: String? = null): Long {
         val now = System.currentTimeMillis()
         val texts = if (type == ItemType.SHOPPING) splitShoppingItems(text) else listOf(text.trim())
-        return texts.map { dao.insert(Item(type = type, text = it, createdAt = now)) }.last()
+        return texts.map { t ->
+            val item = Item(type = type, text = t, createdAt = now, remindAt = remindAt, repeat = repeat)
+            dao.insert(item).also { reminders.sync(item.copy(id = it)) }
+        }.last()
     }
 
-    suspend fun update(item: Item) = dao.update(item.copy(updatedAt = System.currentTimeMillis()))
+    suspend fun update(item: Item) {
+        dao.update(item.copy(updatedAt = System.currentTimeMillis()))
+        reminders.sync(item)
+    }
+
+    /** Alarms don't survive a reboot or an app update; set them all again. */
+    suspend fun rearmAll() = dao.withReminders().forEach { reminders.sync(it) }
 
     /**
      * Typo-tolerant search (PLAN.md §2): every word must appear; under 3 letters uses LIKE;
@@ -60,10 +72,12 @@ class ItemRepository @Inject constructor(
     /**
      * The only way to delete an item (CLAUDE.md). Removes its files, its row and,
      * through a trigger in the same transaction, its search entry. Then checkpoints
-     * the WAL so the deleted text doesn't linger there. Add every new place an item
-     * leaves a trace (Markdown file, alarms, calendar event) here.
+     * the WAL so the deleted text doesn't linger there. Also cancels its alarm and
+     * notifications. Add every new place an item leaves a trace (Markdown file,
+     * calendar event) here.
      */
     suspend fun delete(item: Item): Deleted {
+        reminders.cancelAll(item.id)
         // Files first: if we die halfway, the item is still visible and can be deleted again.
         val files = withContext(Dispatchers.IO) {
             val dir = filesDir(item.id)
@@ -84,6 +98,7 @@ class ItemRepository @Inject constructor(
     /** Undo: puts back exactly what [delete] removed. */
     suspend fun restore(deleted: Deleted) {
         dao.insert(deleted.item)
+        reminders.sync(deleted.item)
         withContext(Dispatchers.IO) {
             deleted.files.forEach { (path, bytes) ->
                 File(filesDir(deleted.item.id), path).apply { parentFile?.mkdirs() }.writeBytes(bytes)

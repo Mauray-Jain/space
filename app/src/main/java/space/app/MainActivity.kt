@@ -1,5 +1,9 @@
 package space.app
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,35 +15,61 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
+import space.app.remind.Reminders
 import space.app.ui.EditorScreen
 import space.app.ui.HomeScreen
 import space.app.ui.HomeViewModel
+import space.app.ui.SettingsScreen
+import space.app.ui.SettingsViewModel
 import space.app.ui.SpaceTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: HomeViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
+
+    /** An item to open, from a notification's Edit button or tap. */
+    private val openRequest = MutableStateFlow<Long?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        handle(intent)
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
+        }
         setContent {
             SpaceTheme {
-                // Two screens, so a plain variable instead of a navigation library.
+                // Three screens, so plain state instead of a navigation library.
                 var editingId by rememberSaveable { mutableStateOf<Long?>(null) }
+                var inSettings by rememberSaveable { mutableStateOf(false) }
+                val request by openRequest.collectAsStateWithLifecycle()
+                request?.let { editingId = it; inSettings = false; openRequest.value = null }
+
                 val state by viewModel.state.collectAsStateWithLifecycle()
                 val editing = state.all.find { it.id == editingId }
-                if (editing != null) {
-                    EditorScreen(
+                when {
+                    inSettings -> SettingsScreen(settingsViewModel, onBack = { inSettings = false })
+                    editing != null -> EditorScreen(
                         item = editing,
                         onSave = viewModel::save,
                         onDelete = { viewModel.delete(listOf(it)); editingId = null },
                         onBack = { editingId = null },
                     )
-                } else {
-                    HomeScreen(viewModel, onOpen = { editingId = it.id })
+                    else -> HomeScreen(viewModel, onOpen = { editingId = it.id }, onSettings = { inSettings = true })
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handle(intent)
+    }
+
+    private fun handle(intent: Intent) {
+        val id = intent.getLongExtra(Reminders.EXTRA_ID, -1)
+        if (id >= 0) openRequest.value = id
     }
 }

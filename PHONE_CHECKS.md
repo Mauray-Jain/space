@@ -5,3 +5,17 @@ Things CI's emulator can't cover. Try them on the Nothing Phone (3a) when you ca
 ## Milestone 1
 - [ ] Quick Settings tile: add "Save to Space" to Quick Settings, tap it, type, Save. It should close and the item shows in the app.
 - [ ] Share sheet: share a link from Chrome to "Save to Space". The sheet opens with the title and link filled in.
+
+## Milestone 2
+- [ ] Editor: open an item, change text, add `#tag`, pin, go Back. The change, the tag chip on the home screen and "Pinned" all show.
+- [ ] Long-press two items, Delete, then Undo within 5 s. Both come back.
+- [ ] Shopping chip: add "milk, bread, soap". They sort under Dairy & eggs / Bakery / Household. Tick one: it moves to Bought, struck through.
+- [ ] Search "dentsit" finds a note containing "dentist".
+
+## Milestone 3
+- [ ] Reminder in 2 minutes (quick entry → Reminder chip → time). It rings as a notification with Done / Snooze buttons, with the screen off too.
+- [ ] Snooze 30 min from the notification. The card shows the new time.
+- [ ] Settings → Reminder style → Alarm. A reminder now rings full screen over the lock screen until Done/Snooze, also in Do Not Disturb.
+- [ ] Reboot the phone with a reminder set for later. It still rings.
+- [ ] Settings → "Allow unrestricted battery" opens Android's prompt.
+- [ ] From the Quick Settings tile, save a Reminder: a "Reminder set" notification with Undo/Edit appears. Undo removes it.

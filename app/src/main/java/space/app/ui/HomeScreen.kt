@@ -51,7 +51,7 @@ import space.app.data.ItemType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit) {
+fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit, onSettings: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
     val undoable by viewModel.undoable.collectAsStateWithLifecycle()
@@ -107,6 +107,7 @@ fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit) {
                     actions = {
                         TextButton(onClick = { searching = true }) { Text("Search") }
                         SortMenu(state.sort, viewModel::setSort)
+                        TextButton(onClick = onSettings) { Text("Settings") }
                     },
                 )
             }
@@ -154,7 +155,7 @@ fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit) {
         QuickEntrySheet(
             initialText = "",
             initialType = if (state.filter == Filter.SHOPPING) ItemType.SHOPPING else ItemType.NOTE,
-            onSave = { type, text -> viewModel.add(type, text); adding = false },
+            onSave = { type, text, at -> viewModel.add(type, text, at); adding = false },
             onDismiss = { adding = false },
         )
     }
@@ -247,6 +248,7 @@ private fun ItemCard(item: Item, selected: Boolean, onClick: () -> Unit, onLongC
                 )
                 val meta = listOfNotNull(
                     "Pinned".takeIf { item.pinned },
+                    item.remindAt?.let { at -> formatWhen(item.snoozedUntil ?: at) + (item.repeat?.let { " · " + space.app.remind.describe(it) } ?: "") },
                     checklist.subtasks.takeIf { it.isNotEmpty() }?.let { s -> "${s.count { it.done }}/${s.size}" },
                 )
                 if (meta.isNotEmpty()) {

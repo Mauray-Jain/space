@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
+import java.time.LocalDateTime
 import space.app.data.ItemType
 
 /** The one capture sheet, used by the app, the Quick Settings tile and the share sheet. */
@@ -32,12 +33,13 @@ import space.app.data.ItemType
 @Composable
 fun QuickEntrySheet(
     initialText: String,
-    onSave: (ItemType, String) -> Unit,
+    onSave: (ItemType, String, LocalDateTime?) -> Unit,
     onDismiss: () -> Unit,
     initialType: ItemType = ItemType.NOTE,
 ) {
     var text by rememberSaveable { mutableStateOf(initialText) }
     var type by rememberSaveable { mutableStateOf(initialType) }
+    var remindAt by rememberSaveable { mutableStateOf(defaultReminderTime()) }
     val focus = remember { FocusRequester() }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
@@ -49,12 +51,16 @@ fun QuickEntrySheet(
                 modifier = Modifier.fillMaxWidth().focusRequester(focus),
                 minLines = 3,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(selected = type == ItemType.NOTE, onClick = { type = ItemType.NOTE }, label = { Text("Note") })
                 FilterChip(selected = type == ItemType.TASK, onClick = { type = ItemType.TASK }, label = { Text("Task") })
+                FilterChip(selected = type == ItemType.REMINDER, onClick = { type = ItemType.REMINDER }, label = { Text("Reminder") })
                 FilterChip(selected = type == ItemType.SHOPPING, onClick = { type = ItemType.SHOPPING }, label = { Text("Shopping") })
+            }
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                if (type == ItemType.REMINDER) WhenPicker(remindAt) { remindAt = it }
                 Spacer(Modifier.weight(1f))
-                Button(onClick = { onSave(type, text) }, enabled = text.isNotBlank()) { Text("Save") }
+                Button(onClick = { onSave(type, text, remindAt.takeIf { type == ItemType.REMINDER }) }, enabled = text.isNotBlank()) { Text("Save") }
             }
         }
     }

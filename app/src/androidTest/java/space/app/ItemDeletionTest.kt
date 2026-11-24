@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import space.app.data.ItemRepository
 import space.app.data.ItemType
 import space.app.data.SpaceDatabase
+import space.app.remind.Reminders
 
 @RunWith(AndroidJUnit4::class)
 class ItemDeletionTest {
@@ -28,7 +29,7 @@ class ItemDeletionTest {
     @Before
     fun open() {
         db = SpaceDatabase.build(context, dbName)
-        repo = ItemRepository(db, context)
+        repo = ItemRepository(db, context, Reminders(context, Settings(context)))
     }
 
     @After

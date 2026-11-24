@@ -1,0 +1,25 @@
+# Local Claude instructions
+CLAUDE.local.md
+
+# Android / Gradle
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Model files (downloaded, not committed)
+*.onnx
+*.ort
+*.tflite
+*.bin
+
+# OS
+.DS_Store

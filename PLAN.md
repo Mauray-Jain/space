@@ -152,6 +152,15 @@ Every milestone is test-first: write the failing tests, then the code.
 - **Undo:** the Undo/Edit notification stays until swiped away. "Confirm first" turns it into Add / Edit / Discard.
 - **Backup:** Drive backup and Google sign-in dropped. Manual export/import only.
 - **Markdown sync** is one-way. Copies already synced elsewhere survive deletion (known issue).
+- **Package name:** `space.app`.
+- **Main screen:** one feed of everything, newest first, pinned on top, with filter chips (All / Notes / Tasks / Reminders / Shopping).
+- **Tags:** `#hashtags` in the text (typed or spoken) become tags; also editable as chips in the editor.
+- **Done tasks and fired one-off reminders** stay in the list, struck through, until you delete or archive them.
+- **Quick entry:** type chips (Note / Task, Reminder from M3). From M4 the rules pre-select one and the chips become an override.
+- **Testing:** unit tests run on the JVM; instrumented tests (DB, delete, alarms, UI) run on an emulator in GitHub Actions on every push.
+- **Working while you're away:** when something can only be checked on the phone, or a CI step stays broken, it's listed in [PHONE_CHECKS.md](PHONE_CHECKS.md) and work moves on.
+- **MiniLM training**, if the rules fail M4, may run in the cloud dev container (CPU), on sentences in `training/` only.
+- **Bundled SQLite checked (M1):** `androidx.sqlite:sqlite-bundled` 2.7.1 is SQLite 3.50.1 with FTS5 and `SECURE_DELETE` compiled in; the trigram tokenizer works.
 
 Nothing open right now.
 
@@ -162,4 +171,4 @@ Nothing open right now.
 - Reading browser URLs via accessibility varies by browser.
 - Android battery optimization: ask for an "unrestricted" exemption.
 - sherpa-onnx ships its own ONNX Runtime. Check in M5 that it loads with the shared `onnxruntime-android` build (same version, one `.so`).
-- The bundled SQLite driver must include FTS5 with the trigram tokenizer. Checked in M1.
+- ~~The bundled SQLite driver must include FTS5 with the trigram tokenizer.~~ Checked in M1: it does.

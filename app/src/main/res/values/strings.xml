@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Space</string>
+    <string name="capture_label">Save to Space</string>
 </resources>

@@ -59,6 +59,19 @@ class ItemDeletionTest {
         assertFalse(dir.exists())
     }
 
+    // EDGE_CASES.md §9: Undo is held in memory only, and brings back the row, search entry and files.
+    @Test
+    fun undoRestoresWhatWasDeleted() = runBlocking {
+        val id = repo.add(ItemType.NOTE, "parking level 3")
+        File(repo.filesDir(id).apply { mkdirs() }, "photo.jpg").writeText("pixels")
+        val deleted = repo.delete(repo.observeAll().first().single())
+
+        repo.restore(deleted)
+
+        assertEquals(listOf("parking level 3"), repo.search("parking").map { it.text })
+        assertEquals("pixels", File(repo.filesDir(id), "photo.jpg").readText())
+    }
+
     // EDGE_CASES.md §9: deleted text must not linger in database pages or the WAL file.
     @Test
     fun deletedTextIsNotLeftInDatabaseFiles() = runBlocking {

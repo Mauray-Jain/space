@@ -3,8 +3,8 @@ package space.app
 import android.content.Intent
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -32,8 +32,30 @@ class QuickEntryTest {
         compose.onNodeWithText("Save").performClick()
 
         compose.waitUntil(5_000) { compose.onAllNodesWithTextCount(text) == 1 }
-        compose.onNodeWithContentDescription("Delete $text").performClick()
+        compose.onNodeWithText(text).performClick()
+        compose.onNodeWithText("Delete").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextCount(text) == 0 }
+
+        // EDGE_CASES.md §9: Undo brings it back.
+        compose.onNodeWithText("Undo").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextCount(text) == 1 }
+    }
+
+    @Test
+    fun subtasksAddedInTheEditorShowAsProgress() {
+        val text = "pack for trip ${UUID.randomUUID()}"
+        compose.onNodeWithContentDescription("New").performClick()
+        compose.onNode(hasSetTextAction()).performTextInput(text)
+        compose.onNodeWithText("Task").performClick()
+        compose.onNodeWithText("Save").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextCount(text) == 1 }
+
+        compose.onNodeWithText(text).performClick()
+        compose.onNodeWithText("Add subtask").performClick()
+        compose.onAllNodes(hasSetTextAction())[2].performTextInput("passport")
+        compose.onNodeWithText("Back").performClick()
+
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextCount("0/1") >= 1 }
     }
 }
 

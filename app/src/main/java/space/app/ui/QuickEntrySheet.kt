@@ -30,9 +30,14 @@ import space.app.data.ItemType
 /** The one capture sheet, used by the app, the Quick Settings tile and the share sheet. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuickEntrySheet(initialText: String, onSave: (ItemType, String) -> Unit, onDismiss: () -> Unit) {
+fun QuickEntrySheet(
+    initialText: String,
+    onSave: (ItemType, String) -> Unit,
+    onDismiss: () -> Unit,
+    initialType: ItemType = ItemType.NOTE,
+) {
     var text by rememberSaveable { mutableStateOf(initialText) }
-    var type by rememberSaveable { mutableStateOf(ItemType.NOTE) }
+    var type by rememberSaveable { mutableStateOf(initialType) }
     val focus = remember { FocusRequester() }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
@@ -47,6 +52,7 @@ fun QuickEntrySheet(initialText: String, onSave: (ItemType, String) -> Unit, onD
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(selected = type == ItemType.NOTE, onClick = { type = ItemType.NOTE }, label = { Text("Note") })
                 FilterChip(selected = type == ItemType.TASK, onClick = { type = ItemType.TASK }, label = { Text("Task") })
+                FilterChip(selected = type == ItemType.SHOPPING, onClick = { type = ItemType.SHOPPING }, label = { Text("Shopping") })
                 Spacer(Modifier.weight(1f))
                 Button(onClick = { onSave(type, text) }, enabled = text.isNotBlank()) { Text("Save") }
             }

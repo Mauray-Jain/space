@@ -1,19 +1,33 @@
 package space.app.data
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.AutoMigrationSpec
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
 import kotlinx.coroutines.Dispatchers
 
-@Database(entities = [Item::class], version = 1)
+@Database(
+    entities = [Item::class],
+    version = SpaceDatabase.VERSION,
+    autoMigrations = [AutoMigration(from = 1, to = 2, spec = SpaceDatabase.V1to2::class)],
+)
 abstract class SpaceDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
 
+    class V1to2 : AutoMigrationSpec {
+        override fun onPostMigrate(connection: SQLiteConnection) {
+            connection.execSQL("UPDATE items SET updatedAt = createdAt")
+        }
+    }
+
     companion object {
+        const val VERSION = 2
+
         // Bundled driver: Android 12's own SQLite has no FTS5 trigram tokenizer.
         fun build(context: Context, name: String = "space.db"): SpaceDatabase =
             Room.databaseBuilder<SpaceDatabase>(context, name)

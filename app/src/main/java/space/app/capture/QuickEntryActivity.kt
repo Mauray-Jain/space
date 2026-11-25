@@ -6,7 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import space.app.MainActivity
 import space.app.ui.QuickEntrySheet
+import space.app.understand.Kind
 import space.app.ui.SpaceTheme
 
 /** Opens just the capture sheet over whatever is on screen: from the Quick Settings tile or the share sheet. */
@@ -25,7 +27,22 @@ class QuickEntryActivity : ComponentActivity() {
             SpaceTheme {
                 QuickEntrySheet(
                     initialText = initialText,
-                    onSave = { type, text, at -> viewModel.save(type, text, at); finish() },
+                    understand = viewModel::understand,
+                    onSave = { c ->
+                        val u = c.understood
+                        if (u?.type == Kind.QUESTION) {
+                            // Questions are answered in the app.
+                            startActivity(
+                                Intent(this, MainActivity::class.java)
+                                    .putExtra(MainActivity.EXTRA_QUESTION_TARGET, u.target)
+                                    .putExtra(MainActivity.EXTRA_QUESTION_SEARCH, u.search)
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                            )
+                        } else {
+                            viewModel.save(c)
+                        }
+                        finish()
+                    },
                     onDismiss = { finish() },
                 )
             }

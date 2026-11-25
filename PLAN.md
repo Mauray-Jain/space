@@ -42,7 +42,7 @@ Fully open source, no Google ML Kit, nothing sent anywhere. The app has **no INT
 | Understanding what you meant (note / task / reminder / event / list / question) + the important words (title, items, time phrase) | **Rules**: keywords, verb-first, negation guard, list splitting, self-corrections | ~0 | Yes |
 | ↳ only if the rules fail rows of the M4 test set | MiniLM-L6 fine-tuned for intent + slot tagging, int8 | ~25 MB | Only if needed |
 | Dates, times, repeats, fuzzy times | **Own rule-based parser** (port of the *chrono* library + our additions) | ~0 | Yes |
-| Phones, emails, URLs, money | Android `Patterns` + **libphonenumber** | ~1 MB | Yes |
+| Phones, emails, URLs, money | **libphonenumber** + small regexes (not `Patterns`, so the rules run as JVM unit tests) | ~1 MB | Yes |
 | Text in screenshots & photos | **PaddleOCR mobile** (PP-OCR) on ONNX Runtime | ~10–15 MB | Yes |
 | QR codes / barcodes | **ZXing** (zxing-cpp) | <1 MB | Yes |
 | Tagging captures | Rules on OCR text + the source app's name | ~0 | Yes |
@@ -95,7 +95,7 @@ screen/photo ─► PaddleOCR + ZXing ┘
 **Capture extras**
 - Pause music while recording (audio focus), resume after
 - Long (scrolling) screenshots
-- Business card → contact: PaddleOCR + libphonenumber/Patterns + name rules fill a new-contact form
+- Business card → contact: PaddleOCR + libphonenumber + name rules fill a new-contact form
 - Ask about your own stuff ("what's on my grocery list?")
 - Scrollable widget showing several upcoming items
 
@@ -160,6 +160,9 @@ Every milestone is test-first: write the failing tests, then the code.
 - **Testing:** unit tests run on the JVM; instrumented tests (DB, delete, alarms, UI) run on an emulator in GitHub Actions on every push.
 - **Working while you're away:** when something can only be checked on the phone, or a CI step stays broken, it's listed in [PHONE_CHECKS.md](PHONE_CHECKS.md) and work moves on.
 - **MiniLM training**, if the rules fail M4, may run in the cloud dev container (CPU), on sentences in `training/` only.
+- **M4 result:** the rules pass all 253 required rows of the test set (13 of 34 `known_weak` rows too), so **MiniLM is not added**.
+- **Events are saved as reminders** until calendar sync (M7).
+- **"Confirm first" setting** waits for captures that have no sheet (voice via the key in M5, screenshots in M6). Typed captures already show what they'll become before Save, and the chips override it.
 - **Bundled SQLite checked (M1):** `androidx.sqlite:sqlite-bundled` 2.7.1 is SQLite 3.50.1 with FTS5 and `SECURE_DELETE` compiled in; the trigram tokenizer works.
 
 Nothing open right now.

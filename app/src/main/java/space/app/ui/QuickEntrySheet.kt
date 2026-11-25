@@ -27,19 +27,45 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
 import space.app.data.ItemType
+import space.app.understand.Kind
+import space.app.understand.Understood
+import space.app.understand.preview
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
 
-/** The one capture sheet, used by the app, the Quick Settings tile and the share sheet. */
-@OptIn(ExperimentalMaterial3Api::class)
+/** What the sheet hands back. [understood] is set when the automatic reading was kept (no chip or time changed). */
+data class Capture(val type: ItemType, val text: String, val remindAt: LocalDateTime?, val understood: Understood?)
+
+/** The type chip an automatic reading pre-selects. */
+private fun chipFor(u: Understood): ItemType = when (u.type) {
+    Kind.REMINDER, Kind.EVENT -> ItemType.REMINDER
+    Kind.TASK -> ItemType.TASK
+    Kind.LIST -> ItemType.SHOPPING
+    else -> ItemType.NOTE
+}
+
+/**
+ * The one capture sheet, used by the app, the Quick Settings tile and the share sheet.
+ * The rules read the text as you type and pre-select a chip; tapping a chip or the time overrides them.
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun QuickEntrySheet(
     initialText: String,
-    onSave: (ItemType, String, LocalDateTime?) -> Unit,
+    understand: (String) -> Understood?,
+    onSave: (Capture) -> Unit,
     onDismiss: () -> Unit,
     initialType: ItemType = ItemType.NOTE,
 ) {
     var text by rememberSaveable { mutableStateOf(initialText) }
-    var type by rememberSaveable { mutableStateOf(initialType) }
-    var remindAt by rememberSaveable { mutableStateOf(defaultReminderTime()) }
+    var manualType by rememberSaveable { mutableStateOf<ItemType?>(initialType.takeIf { it != ItemType.NOTE }) }
+    var manualTime by rememberSaveable { mutableStateOf<LocalDateTime?>(null) }
+    val understood = remember(text) { if (manualType == null && manualTime == null) understand(text) else null }
+    val type = manualType ?: understood?.let(::chipFor) ?: ItemType.NOTE
+    val remindAt = manualTime ?: understood?.at ?: remember { defaultReminderTime() }
+    val auto = manualType == null && manualTime == null
     val focus = remember { FocusRequester() }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
@@ -51,16 +77,23 @@ fun QuickEntrySheet(
                 modifier = Modifier.fillMaxWidth().focusRequester(focus),
                 minLines = 3,
             )
-            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = type == ItemType.NOTE, onClick = { type = ItemType.NOTE }, label = { Text("Note") })
-                FilterChip(selected = type == ItemType.TASK, onClick = { type = ItemType.TASK }, label = { Text("Task") })
-                FilterChip(selected = type == ItemType.REMINDER, onClick = { type = ItemType.REMINDER }, label = { Text("Reminder") })
-                FilterChip(selected = type == ItemType.SHOPPING, onClick = { type = ItemType.SHOPPING }, label = { Text("Shopping") })
+            val u = understood
+            if (auto && u != null && text.isNotBlank()) {
+                Text(preview(u, ::formatWhen), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                if (type == ItemType.REMINDER) WhenPicker(remindAt) { remindAt = it }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(ItemType.NOTE to "Note", ItemType.TASK to "Task", ItemType.REMINDER to "Reminder", ItemType.SHOPPING to "Shopping").forEach { (t, label) ->
+                    FilterChip(selected = type == t, onClick = { manualType = t }, label = { Text(label) })
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (type == ItemType.REMINDER) WhenPicker(remindAt) { manualTime = it; manualType = ItemType.REMINDER }
                 Spacer(Modifier.weight(1f))
-                Button(onClick = { onSave(type, text, remindAt.takeIf { type == ItemType.REMINDER }) }, enabled = text.isNotBlank()) { Text("Save") }
+                val asks = auto && u?.type == Kind.QUESTION
+                Button(
+                    onClick = { onSave(Capture(type, text, remindAt.takeIf { type == ItemType.REMINDER }, u.takeIf { auto })) },
+                    enabled = text.isNotBlank(),
+                ) { Text(if (asks) "Show" else "Save") }
             }
         }
     }

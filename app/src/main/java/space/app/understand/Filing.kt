@@ -33,3 +33,14 @@ fun preview(u: Understood, formatTime: (LocalDateTime) -> String): String = when
     Kind.NOTE, Kind.CONTACT -> "Note"
     Kind.DISCARD -> ""
 }
+
+/** Saves a capture from the quick-entry sheet: the automatic reading if it was kept, else exactly what was picked. */
+@javax.inject.Singleton
+class Filer @javax.inject.Inject constructor(private val repo: space.app.data.ItemRepository) {
+    suspend fun file(type: ItemType, text: String, remindAt: LocalDateTime?, understood: Understood?): List<Long> =
+        if (understood != null) {
+            drafts(understood, text).map { repo.add(it.type, it.text, it.remindAt, it.repeat) }
+        } else {
+            listOf(repo.add(type, text, remindAt))
+        }
+}

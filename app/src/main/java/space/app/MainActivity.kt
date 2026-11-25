@@ -23,6 +23,8 @@ import space.app.ui.HomeViewModel
 import space.app.ui.SettingsScreen
 import space.app.ui.SettingsViewModel
 import space.app.ui.SpaceTheme
+import space.app.understand.Kind
+import space.app.understand.Understood
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -71,5 +73,13 @@ class MainActivity : ComponentActivity() {
     private fun handle(intent: Intent) {
         val id = intent.getLongExtra(Reminders.EXTRA_ID, -1)
         if (id >= 0) openRequest.value = id
+        val target = intent.getStringExtra(EXTRA_QUESTION_TARGET)
+        val search = intent.getStringExtra(EXTRA_QUESTION_SEARCH)
+        if (target != null || search != null) viewModel.ask(Understood(Kind.QUESTION, target = target, search = search))
+    }
+
+    companion object {
+        const val EXTRA_QUESTION_TARGET = "space.app.QUESTION_TARGET"
+        const val EXTRA_QUESTION_SEARCH = "space.app.QUESTION_SEARCH"
     }
 }

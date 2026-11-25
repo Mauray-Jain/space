@@ -19,6 +19,10 @@ import space.app.data.Item
 import space.app.data.ItemRepository
 import space.app.data.ItemType
 import space.app.data.tags
+import space.app.understand.Filer
+import space.app.understand.Kind
+import space.app.understand.Understood
+import space.app.understand.understand
 
 data class HomeState(
     val items: List<Item> = emptyList(),
@@ -30,7 +34,7 @@ data class HomeState(
 )
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val repo: ItemRepository) : ViewModel() {
+class HomeViewModel @Inject constructor(private val repo: ItemRepository, private val filer: Filer) : ViewModel() {
     private val filter = MutableStateFlow(Filter.ALL)
     private val tag = MutableStateFlow<String?>(null)
     private val sort = MutableStateFlow(Sort.NEWEST)
@@ -40,8 +44,10 @@ class HomeViewModel @Inject constructor(private val repo: ItemRepository) : View
             HomeState(feed(all, f, t, s), all, f, t, s, all.filter { !it.archived }.flatMap { tags(it.text) }.distinct().sorted())
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeState())
 
-    private val _searchResults = MutableStateFlow<List<Item>?>(null)
+    private val _query = MutableStateFlow<String?>(null)
     /** null = not searching. */
+    val query: StateFlow<String?> = _query.asStateFlow()
+    private val _searchResults = MutableStateFlow<List<Item>?>(null)
     val searchResults: StateFlow<List<Item>?> = _searchResults.asStateFlow()
     private var searchJob: Job? = null
 
@@ -55,6 +61,7 @@ class HomeViewModel @Inject constructor(private val repo: ItemRepository) : View
     fun setSort(value: Sort) { sort.value = value }
 
     fun search(query: String) {
+        _query.value = query
         searchJob?.cancel()
         if (query.isBlank()) { _searchResults.value = null; return }
         searchJob = viewModelScope.launch {
@@ -63,8 +70,28 @@ class HomeViewModel @Inject constructor(private val repo: ItemRepository) : View
         }
     }
 
+    fun closeSearch() {
+        searchJob?.cancel()
+        _query.value = null
+        _searchResults.value = null
+    }
+
     fun add(type: ItemType, text: String, remindAt: LocalDateTime? = null) {
         viewModelScope.launch { repo.add(type, text, remindAt) }
+    }
+
+    fun understand(text: String): Understood? = understand(text, LocalDateTime.now()).firstOrNull()
+
+    /** Files a capture, or answers it if it was a question ("ask about your stuff"). */
+    fun capture(c: Capture) {
+        val u = c.understood
+        if (u?.type == Kind.QUESTION) return ask(u)
+        viewModelScope.launch { filer.file(c.type, c.text, c.remindAt, u) }
+    }
+
+    /** No generated answer, just the right items: the shopping list, or a search (PLAN.md §2). */
+    fun ask(u: Understood) {
+        if (u.target == "shopping_list") { closeSearch(); setFilter(Filter.SHOPPING) } else search(u.search.orEmpty())
     }
 
     fun save(item: Item) {

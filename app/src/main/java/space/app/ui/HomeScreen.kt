@@ -56,8 +56,8 @@ fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit, onSettings: () 
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
     val undoable by viewModel.undoable.collectAsStateWithLifecycle()
     var adding by rememberSaveable { mutableStateOf(false) }
-    var searching by rememberSaveable { mutableStateOf(false) }
-    var query by rememberSaveable { mutableStateOf("") }
+    val query by viewModel.query.collectAsStateWithLifecycle()
+    val searching = query != null
     var selected by remember { mutableStateOf(setOf<Long>()) }
     val snackbar = remember { SnackbarHostState() }
 
@@ -91,21 +91,21 @@ fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit, onSettings: () 
                 searching -> TopAppBar(
                     title = {
                         TextField(
-                            value = query,
-                            onValueChange = { query = it; viewModel.search(it) },
+                            value = query.orEmpty(),
+                            onValueChange = viewModel::search,
                             placeholder = { Text("Search everything") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Search text" },
                         )
                     },
                     actions = {
-                        TextButton(onClick = { searching = false; query = ""; viewModel.search("") }) { Text("Close") }
+                        TextButton(onClick = viewModel::closeSearch) { Text("Close") }
                     },
                 )
                 else -> TopAppBar(
                     title = { Text("Space") },
                     actions = {
-                        TextButton(onClick = { searching = true }) { Text("Search") }
+                        TextButton(onClick = { viewModel.search("") }) { Text("Search") }
                         SortMenu(state.sort, viewModel::setSort)
                         TextButton(onClick = onSettings) { Text("Settings") }
                     },
@@ -155,7 +155,8 @@ fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit, onSettings: () 
         QuickEntrySheet(
             initialText = "",
             initialType = if (state.filter == Filter.SHOPPING) ItemType.SHOPPING else ItemType.NOTE,
-            onSave = { type, text, at -> viewModel.add(type, text, at); adding = false },
+            understand = viewModel::understand,
+            onSave = { viewModel.capture(it); adding = false },
             onDismiss = { adding = false },
         )
     }

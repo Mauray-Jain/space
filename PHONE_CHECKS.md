@@ -19,3 +19,8 @@ Things CI's emulator can't cover. Try them on the Nothing Phone (3a) when you ca
 - [ ] Reboot the phone with a reminder set for later. It still rings.
 - [ ] Settings → "Allow unrestricted battery" opens Android's prompt.
 - [ ] From the Quick Settings tile, save a Reminder: a "Reminder set" notification with Undo/Edit appears. Undo removes it.
+
+## Milestone 4
+- [ ] Quick entry: type "remind me to call mom at 6". The Reminder chip lights up and the line under the text reads "Reminder · call mom · …, 18:00". Save: a reminder "call mom" appears.
+- [ ] Type "buy milk, eggs and bread": three shopping items. Tap Note before Save: one note instead.
+- [ ] Type "what's on my grocery list?" and tap Show: the shopping list opens.

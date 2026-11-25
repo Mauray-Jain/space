@@ -42,7 +42,8 @@ class QuickEntryTest {
         compose.onNodeWithText("Delete").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextCount(text) == 0 }
 
-        // EDGE_CASES.md §9: Undo brings it back.
+        // EDGE_CASES.md §9: Undo brings it back. The snackbar shows just after the row is gone, so wait for it.
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextCount("Undo") == 1 }
         compose.onNodeWithText("Undo").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextCount(text) == 1 }
     }

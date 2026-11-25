@@ -46,7 +46,10 @@ ITEMS = ["milk", "eggs", "bread", "butter", "cheese", "yogurt", "curd", "paneer"
          "coriander", "lemons", "chillies", "carrots", "cucumber", "chicken", "fish", "pasta", "noodles", "oats", "cereal",
          "honey", "jam", "ketchup", "biscuits", "chips", "almonds", "dal", "oil", "ghee", "soap", "shampoo", "toothpaste",
          "detergent", "tissues", "toilet paper", "dish soap", "batteries", "bin bags", "juice", "soda", "water bottles",
-         "ice cream", "peanut butter", "olive oil", "green tea", "brown bread", "oat milk", "frozen peas", "cat food", "dog food"]
+         "ice cream", "peanut butter", "olive oil", "green tea", "brown bread", "oat milk", "frozen peas", "cat food", "dog food",
+         "paper towels", "baking soda", "cling film", "tea bags", "garbage bags", "almond milk", "chocolate chips", "rice flour",
+         "coconut oil", "hand wash", "kitchen roll", "cotton buds", "soy sauce", "corn flakes", "sparkling water", "dish tabs",
+         "capsule coffee", "face wash", "baby wipes", "light bulbs", "aa batteries", "trash bags"]
 QUANT = ["2 litres of {i}", "a dozen {i}", "1 kg of {i}", "a packet of {i}", "two {i}", "a bottle of {i}", "half a kg of {i}", "3 {i}"]
 PAIRS = ["salt and pepper", "bread and butter", "mac and cheese", "fish and chips", "milk and cookies"]
 HOLIDAYS = ["diwali", "holi", "christmas", "eid", "new year's day", "my birthday", "our anniversary", "new year's eve", "raksha bandhan"]
@@ -102,7 +105,7 @@ def event():
 
 def reminder():
     a, t = action(), (repeat_phrase() if random.random() < 0.25 else time_phrase())
-    form = random.randrange(10)
+    form = random.randrange(12)
     e = Ex()
     if form == 0: e.add("remind me to").add(a, "TITLE").add(t)
     elif form == 1: e.add("remind me").add(t).add("to").add(a, "TITLE")
@@ -113,6 +116,13 @@ def reminder():
     elif form == 6: e.add(a, "TITLE").add(t)
     elif form == 7: e.add(t).add(a, "TITLE")
     elif form == 8: e.add(pick(["can you remind me to", "please remind me to", "pls remind me to", "i need to", "i have to", "i must"])).add(a, "TITLE").add(t)
+    elif form == 10:  # other ways of asking to be reminded, about a thing rather than an action
+        thing = pick(["the gas bill", "the car insurance", "the school fees", "the passport renewal", "the dentist", "the visa forms",
+                      "the parcel", "the rent", "the library books", "the tax return", "the broadband plan", "the vet visit"])
+        e.add(pick(["ping me about", "nudge me about", "buzz me about", "alert me about", "remind me about", "give me a shout about",
+                    "could you ping me about", "can you nudge me about", "pls ping me about", "let me know about"])).add(thing, "TITLE").add(t)
+    elif form == 11:
+        e.add(pick(["don't let me forget to", "dont let me forget to", "make sure i", "make sure to", "be sure to", "do not let me forget to"])).add(a, "TITLE").add(t)
     else: e.add(a, "TITLE").add(t).add(pick(["please", "thanks", "ok", ""]))
     return e.build("reminder")
 
@@ -130,7 +140,7 @@ def event_ex():
 def task():
     a = action()
     e = Ex()
-    form = random.randrange(9)
+    form = random.randrange(12)
     if form == 0: e.add(a, "TITLE")
     elif form == 1: e.add(pick(["remind me to", "remember to", "don't forget to", "need to", "i need to", "i have to", "gotta", "todo"])).add(a, "TITLE")
     elif form == 2: e.add(a.capitalize() + ".", "TITLE") if False else e.add(a.capitalize(), "TITLE").add(".")
@@ -141,7 +151,18 @@ def task():
     elif form == 5: e.add(f"buy {pick(['new tyres', 'a helmet', 'sunscreen', 'a power bank', 'snacks'])} before the {pick(['trip', 'flight', 'match', 'weekend'])}", "TITLE")
     elif form == 6: e.add(f"get the {pick(['car', 'bike', 'ac', 'fridge', 'laptop', 'phone screen'])} {pick(['serviced', 'fixed', 'repaired', 'cleaned', 'checked'])}", "TITLE")
     elif form == 7: e.add(f"{pick(['call', 'text', 'email'])} {pick(PEOPLE)} and {pick(PEOPLE)}", "TITLE")
-    else: e.add(a, "TITLE").add(pick(["asap", "soon", "sometime", ""]))
+    elif form == 8: e.add(a, "TITLE").add(pick(["asap", "soon", "sometime", ""]))
+    elif form == 9:  # the message is part of the title
+        p, clause = pick(PEOPLE), pick(["i'll be late", "the meeting moved to friday", "we're out of milk", "dinner is at 8",
+                                         "the keys are with the guard", "i got the tickets", "the car is fixed", "i can't make it"])
+        verb = pick([f"tell {p}", f"let {p} know", f"remind {p} that", f"text {p} that", f"message {p} saying", f"ask {p} whether"])
+        e.add(f"{verb} {clause}", "TITLE")
+    elif form == 10:
+        thing = pick(["the charger", "the umbrella", "the lunch box", "my glasses", "the gift", "the documents", "the spare key"])
+        e.add(pick(["don't let me forget", "dont let me forget", "make sure i take", "make sure i pack", "don't forget"])).add(thing, "TITLE")
+    else:  # hedged: still something to do
+        e.add(pick(["i think i should", "maybe i should", "i should probably", "i really need to", "i ought to", "probably should",
+                    "i guess i should"])).add(a, "TITLE")
     return e.build("task")
 
 def items_list():
@@ -158,7 +179,7 @@ def shopping():
     its = items_list()
     e = Ex()
     lead = pick(["buy", "grab", "get", "need", "we need", "i need", "pick up", "buy some", "get some", "we're out of", "out of",
-                 "add", "put", "we need more", "running low on"])
+                 "add", "put", "we need more", "running low on", "we are out of", "we've run out of", "we ran out of", "almost out of"])
     if lead.endswith("some"):
         e.add(lead.replace(" some", "")).add("some")
         its = [pick(ITEMS) for _ in its]

@@ -15,6 +15,16 @@ private const val MAX_LEN = 64
 
 /** The model's reading: an intent, and a tag per word with where that word is in the text. */
 class Reading(val intent: String, private val text: String, private val words: List<IntRange>, private val tags: List<String>) {
+    /**
+     * Everything from the first word with [tag] to the last, as written: a title or search phrase is one
+     * stretch, so a word the model skipped inside it ("pick [up] dry cleaning") stays.
+     */
+    fun stretch(tag: String): String {
+        val tagged = tags.indices.filter { tags[it].substringAfter('-') == tag && tags[it] != "O" }
+        if (tagged.isEmpty()) return ""
+        return text.substring(words[tagged.first()].first, words[tagged.last()].last + 1)
+    }
+
     /** The text of each tagged span (e.g. each list item), in the original case. */
     fun spans(tag: String): List<String> {
         val out = mutableListOf<IntRange>()

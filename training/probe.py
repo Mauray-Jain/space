@@ -63,8 +63,11 @@ def main(model, vocab):
             if w is not None and w != prev: tags.append((words[w], TAGS[tl[0][i].argmax()]))
             prev = w
         intent = INTENTS[il[0].argmax()]
-        title = " ".join(w for w, t in tags if t.endswith("TITLE"))
-        search = " ".join(w for w, t in tags if t.endswith("SEARCH"))
+        # Like the app: a title or search phrase is one stretch of the text, first tagged word to last.
+        def stretch(kind):
+            idx = [i for i, (_, t) in enumerate(tags) if t.endswith(kind)]
+            return " ".join(w for w, _ in tags[idx[0]:idx[-1] + 1]) if idx else ""
+        title, search = stretch("TITLE"), stretch("SEARCH")
         items, cur = [], []
         for w, t in tags:
             if t == "B-ITEM": cur and items.append(" ".join(cur)); cur = [w]

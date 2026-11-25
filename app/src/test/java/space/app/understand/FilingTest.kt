@@ -40,6 +40,14 @@ class FilingTest {
         assertEquals(emptyList<Draft>(), drafts("um"))
     }
 
+    // A title is one stretch of what you wrote: a word the model skipped inside it ("up", "on the") isn't dropped.
+    @Test fun titleIsOneStretch() {
+        val r = Reading("task", "pick up dry cleaning on the way home", listOf(0..3, 5..6, 8..10, 12..19, 21..22, 24..26, 28..30, 32..35),
+            listOf("B-TITLE", "O", "I-TITLE", "I-TITLE", "O", "O", "I-TITLE", "I-TITLE"))
+        assertEquals("pick up dry cleaning on the way home", r.stretch("TITLE"))
+        assertEquals("", r.stretch("SEARCH"))
+    }
+
     // #tags written in the capture stay with the item.
     @Test fun tagsSurvive() = assertEquals("call the bank #money", drafts("call the bank #money").single().text)
 }

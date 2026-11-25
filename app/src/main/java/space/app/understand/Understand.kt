@@ -25,7 +25,7 @@ class Understander(model: ByteArray, vocab: List<String>) : AutoCloseable {
         if (text.isBlank() || text.none { it.isLetterOrDigit() }) return listOf(Understood(Kind.DISCARD))
 
         val read = tagger.read(text)
-        fun span(tag: String) = read.spans(tag).joinToString(" ").trim().trim(',', '.', '!', '?', ';', ':', ' ')
+        fun span(tag: String) = read.stretch(tag).trim().trim(',', '.', '!', '?', ';', ':', ' ')
         val found = findWhen(text, now, dayFirst(locale))
         val title = span("TITLE").ifEmpty { tidy(found.rest) }
         return listOf(

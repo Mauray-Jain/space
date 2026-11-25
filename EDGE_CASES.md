@@ -1,10 +1,10 @@
 # Edge cases: does the local stack hold up?
 
-Stack: Moonshine + Silero VAD on ONNX Runtime → own rules for intent and slots + own date/time parser (+ libphonenumber, Android Patterns) · PaddleOCR + ZXing for images. MiniLM is added only if the rules fail the test set.
+Stack: Moonshine + Silero VAD on ONNX Runtime → MiniLM for intent and word tags + own date/time parser (+ libphonenumber) · PaddleOCR + ZXing for images.
 
 Legend: ✅ handled by the stack · 🔧 handled by a specific rule we must write · 🙋 the app asks / you fix it · ⚠️ works, but known to be weak · ❌ not handled in v1
 
-This list is the source of the **milestone 4 test set**, [testdata/understanding_test.jsonl](testdata/understanding_test.jsonl). That file has every row below plus harder variants built to break the rules (format: [testdata/README.md](testdata/README.md)). The test set is **never used for training**. If MiniLM is ever needed, it gets its own generated set in `training/`.
+This list is the source of the **milestone 4 test set**, [testdata/understanding_test.jsonl](testdata/understanding_test.jsonl). That file has every row below plus harder variants built to break the understanding (format: [testdata/README.md](testdata/README.md)). The test set is **never used for training**. MiniLM is trained on its own generated set in `training/`.
 
 ---
 
@@ -154,4 +154,4 @@ Moved to v2: picking a place needed a map, and maps need the network. In v1, "re
 - **Known weak spots, accepted for v1:** splitting multi-item sentences, handwriting, Hinglish/mixed languages, holidays, voice edits ("stop reminding me"), synced Markdown copies.
 - **Safety net:** every automatic action shows **Undo / Edit**, long rambles never auto-act, and the original audio and screenshot are always kept, so a wrong guess is a one-tap fix, never lost data.
 
-**If the rules miss too much** in the M4 test set, MiniLM (intent + slots) is the planned upgrade. Mixed languages wait for the v2 language packs.
+Understanding is MiniLM (intent + word tags) trained on generated sentences; weak spots are fixed by better training sentences, never by training on the test set. Mixed languages wait for the v2 language packs.

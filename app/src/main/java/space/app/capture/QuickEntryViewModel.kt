@@ -22,7 +22,6 @@ import space.app.ui.Capture
 import space.app.ui.formatWhen
 import space.app.understand.Filer
 import space.app.understand.Understood
-import space.app.understand.understand
 import space.app.vision.SCREENSHOT_TITLE
 import space.app.voice.VoiceNotes
 
@@ -34,6 +33,7 @@ class QuickEntryViewModel @Inject constructor(
     private val repo: ItemRepository,
     private val filer: Filer,
     private val reminders: Reminders,
+    private val understanding: space.app.understand.Understanding,
     recorder: Recorder,
     notes: VoiceNotes,
 ) : ViewModel() {
@@ -51,7 +51,18 @@ class QuickEntryViewModel @Inject constructor(
         _shot.value = null
     }
 
-    fun understand(text: String): Understood? = understand(text, LocalDateTime.now()).firstOrNull()
+    // Loaded while the capture sheet is open, closed when it's done (CLAUDE.md: models stay light).
+    private var understander: space.app.understand.Understander? = null
+
+    fun understand(text: String): Understood? =
+        (understander ?: understanding.open().also { understander = it }).understand(text, LocalDateTime.now()).firstOrNull()
+
+    fun releaseModel() {
+        understander?.close()
+        understander = null
+    }
+
+    override fun onCleared() = releaseModel()
 
     // The activity finishes right after Save, so the write must outlive viewModelScope.
     fun save(c: Capture) {

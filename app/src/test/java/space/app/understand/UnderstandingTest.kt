@@ -22,6 +22,10 @@ import org.junit.Test
  * Never tune rules just to pass a known_weak row, and never train on this file (CLAUDE.md).
  */
 class UnderstandingTest {
+    private val understander = File(System.getProperty("models.dir")!!).let { dir ->
+        Understander(File(dir, "intent-minilm.onnx").readBytes(), File(dir, "intent-vocab.txt").readLines())
+    }
+
     private val rows = File("../testdata/understanding_test.jsonl").readLines().filter { it.isNotBlank() }
         .map { Json.parseToJsonElement(it).jsonObject }
 
@@ -33,7 +37,7 @@ class UnderstandingTest {
         for (row in rows) {
             val id = row.str("id")!!
             val weak = row["known_weak"]?.jsonPrimitive?.booleanOrNull == true
-            val got = understand(
+            val got = understander.understand(
                 input = row.str("input")!!,
                 now = LocalDateTime.parse(row.str("now")),
                 locale = Locale.forLanguageTag(row.str("locale") ?: "en-IN"),

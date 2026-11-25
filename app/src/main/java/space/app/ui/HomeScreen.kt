@@ -157,8 +157,8 @@ fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit, onSettings: () 
             initialText = "",
             initialType = if (state.filter == Filter.SHOPPING) ItemType.SHOPPING else ItemType.NOTE,
             understand = viewModel::understand,
-            onSave = { viewModel.capture(it); adding = false },
-            onDismiss = { viewModel.voice.reset(); adding = false },
+            onSave = { viewModel.capture(it); viewModel.releaseModel(); adding = false },
+            onDismiss = { viewModel.voice.reset(); viewModel.releaseModel(); adding = false },
             voice = voiceState,
             onMic = viewModel.voice::toggle,
         )

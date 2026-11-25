@@ -25,7 +25,6 @@ import space.app.understand.Filer
 import space.app.voice.VoiceNotes
 import space.app.understand.Kind
 import space.app.understand.Understood
-import space.app.understand.understand
 
 data class HomeState(
     val items: List<Item> = emptyList(),
@@ -40,6 +39,7 @@ data class HomeState(
 class HomeViewModel @Inject constructor(
     private val repo: ItemRepository,
     private val filer: Filer,
+    private val understanding: space.app.understand.Understanding,
     recorder: Recorder,
     notes: VoiceNotes,
 ) : ViewModel() {
@@ -96,7 +96,18 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch { repo.add(type, text, remindAt) }
     }
 
-    fun understand(text: String): Understood? = understand(text, LocalDateTime.now()).firstOrNull()
+    // Loaded while the capture sheet is open, closed when it's done (CLAUDE.md: models stay light).
+    private var understander: space.app.understand.Understander? = null
+
+    fun understand(text: String): Understood? =
+        (understander ?: understanding.open().also { understander = it }).understand(text, LocalDateTime.now()).firstOrNull()
+
+    fun releaseModel() {
+        understander?.close()
+        understander = null
+    }
+
+    override fun onCleared() = releaseModel()
 
     /** Files a capture, or answers it if it was a question ("ask about your stuff"). */
     fun capture(c: Capture) {

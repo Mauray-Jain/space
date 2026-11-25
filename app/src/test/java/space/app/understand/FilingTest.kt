@@ -7,7 +7,13 @@ import space.app.data.ItemType
 
 class FilingTest {
     private val now = LocalDateTime.parse("2026-11-25T14:00")
-    private fun drafts(text: String) = drafts(understand(text, now).single(), text)
+    companion object {
+        private val understander = java.io.File(System.getProperty("models.dir")!!).let { dir ->
+            Understander(java.io.File(dir, "intent-minilm.onnx").readBytes(), java.io.File(dir, "intent-vocab.txt").readLines())
+        }
+    }
+
+    private fun drafts(text: String) = drafts(understander.understand(text, now).single(), text)
 
     @Test fun reminderKeepsTheTitleTimeAndRepeat() =
         assertEquals(listOf(Draft(ItemType.REMINDER, "take my pills", LocalDateTime.parse("2026-11-26T08:00"), "FREQ=DAILY")),
@@ -32,6 +38,14 @@ class FilingTest {
     @Test fun questionsAndDiscardsSaveNothing() {
         assertEquals(emptyList<Draft>(), drafts("what's on my grocery list?"))
         assertEquals(emptyList<Draft>(), drafts("um"))
+    }
+
+    // A title is one stretch of what you wrote: a word the model skipped inside it ("up", "on the") isn't dropped.
+    @Test fun titleIsOneStretch() {
+        val r = Reading("task", "pick up dry cleaning on the way home", listOf(0..3, 5..6, 8..10, 12..19, 21..22, 24..26, 28..30, 32..35),
+            listOf("B-TITLE", "O", "I-TITLE", "I-TITLE", "O", "O", "I-TITLE", "I-TITLE"))
+        assertEquals("pick up dry cleaning on the way home", r.stretch("TITLE"))
+        assertEquals("", r.stretch("SEARCH"))
     }
 
     // #tags written in the capture stay with the item.

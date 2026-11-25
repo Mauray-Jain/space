@@ -22,12 +22,30 @@ android {
         versionCode = 1
         versionName = "0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // The phone (arm64) and the CI emulator (x86_64); keeps ONNX Runtime's native libs small.
-        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
     buildFeatures {
         compose = true
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Personal sideloading: signed with the debug key until there's a real one.
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    // One APK per ABI: arm64 for the phone, x86_64 for the CI emulator. Keeps ONNX Runtime's native libs small.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "x86_64")
+            isUniversalApk = false
+        }
     }
 }
 

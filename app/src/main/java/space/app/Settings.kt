@@ -11,6 +11,8 @@ enum class ReminderStyle(val label: String, val description: String) {
     ALARM("Alarm", "Rings until you act, full screen, through Do Not Disturb."),
 }
 
+enum class AppTheme(val label: String) { SYSTEM("Like the system"), LIGHT("Light"), DARK("Dark") }
+
 /** App settings. Plain SharedPreferences: a few values, no library needed. */
 @Singleton
 class Settings @Inject constructor(@ApplicationContext context: Context) {
@@ -45,6 +47,16 @@ class Settings @Inject constructor(@ApplicationContext context: Context) {
     var pendingEventDeletes: Set<Long>
         get() = prefs.getStringSet("pendingEventDeletes", emptySet())!!.map { it.toLong() }.toSet()
         set(value) = prefs.edit { putStringSet("pendingEventDeletes", value.map { it.toString() }.toSet()) }
+
+    /** A notification at 8 AM listing open tasks with no time (optional, PLAN.md §3). */
+    var morningSummary: Boolean
+        get() = prefs.getBoolean("morningSummary", false)
+        set(value) = prefs.edit { putBoolean("morningSummary", value) }
+
+    /** Light or dark regardless of the system (wishlist), or follow it. */
+    var theme: AppTheme
+        get() = prefs.getString("theme", null)?.let(AppTheme::valueOf) ?: AppTheme.SYSTEM
+        set(value) = prefs.edit { putString("theme", value.name) }
 
     var reminderStyle: ReminderStyle
         get() = prefs.getString("reminderStyle", null)?.let(ReminderStyle::valueOf) ?: ReminderStyle.NOTIFICATION

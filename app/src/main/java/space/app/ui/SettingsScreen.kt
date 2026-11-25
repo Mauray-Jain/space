@@ -93,6 +93,16 @@ class SettingsViewModel @Inject constructor(
 
     fun learnKey(on: Boolean) { settings.learningKey = on }
 
+    val theme get() = settings.theme
+    fun setTheme(value: space.app.AppTheme) { settings.theme = value }
+
+    var morningSummary
+        get() = settings.morningSummary
+        set(value) {
+            settings.morningSummary = value
+            space.app.remind.MorningAlarm.schedule(context, value)
+        }
+
     fun setReminderStyle(style: ReminderStyle) {
         settings.reminderStyle = style
         viewModelScope.launch { repo.rearmAll() } // the style decides how alarms are set
@@ -133,6 +143,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
                 }) { Text("Allow full-screen alarms") }
             }
 
+            Appearance(viewModel)
             EssentialKey(viewModel)
             MarkdownFolder(viewModel)
             CalendarChoice(viewModel)
@@ -265,4 +276,27 @@ private fun ExportImport(viewModel: SettingsViewModel) {
         OutlinedButton(onClick = { import.launch(arrayOf("application/zip", "application/octet-stream")) }) { Text("Import") }
     }
     message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+}
+
+@Composable
+private fun Appearance(viewModel: SettingsViewModel) {
+    val activity = LocalContext.current as? android.app.Activity
+    var summary by remember { mutableStateOf(viewModel.morningSummary) }
+    Text("Theme", style = MaterialTheme.typography.titleSmall)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        space.app.AppTheme.entries.forEach { t ->
+            androidx.compose.material3.FilterChip(
+                selected = viewModel.theme == t,
+                onClick = { viewModel.setTheme(t); activity?.recreate() },
+                label = { Text(t.label) },
+            )
+        }
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text("Morning summary")
+            Text("8 AM: your open tasks with no time.", style = MaterialTheme.typography.bodySmall)
+        }
+        androidx.compose.material3.Switch(checked = summary, onCheckedChange = { summary = it; viewModel.morningSummary = it })
+    }
 }

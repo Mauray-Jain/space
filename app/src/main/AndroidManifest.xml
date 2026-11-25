@@ -81,6 +81,10 @@
         </receiver>
 
         <receiver
+            android:name=".remind.MorningSummaryReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".remind.ReminderReceiver"
             android:exported="false" />
 

@@ -1,6 +1,6 @@
 # Checks that need your phone
 
-Things CI's emulator can't cover. Try them on the Nothing Phone (3a) when you can. The debug APK from each CI run is attached to the run as `space-debug-apk`.
+Things CI's emulator can't cover. Try them on the Nothing Phone (3a) when you can. The debug APK for the phone (arm64) from each CI run is attached to the run as `space-debug-apk`.
 
 ## Milestone 1
 - [ ] Quick Settings tile: add "Save to Space" to Quick Settings, tap it, type, Save. It should close and the item shows in the app.
@@ -51,3 +51,9 @@ Things CI's emulator can't cover. Try them on the Nothing Phone (3a) when you ca
 - [ ] Export with a password, then open the .zip on a computer with 7-Zip using that password. Import it on the phone: "Imported 0 items" (all already there).
 - [ ] Add the Space widget to the home screen: it lists upcoming reminders and open tasks; "+" opens the capture sheet; tapping an item opens it.
 - [ ] Screenshot (or share a photo of) a business card: a "Business card · Name" notification opens the filled-in contact form. The note also has "Add to contacts".
+
+## Milestone 8
+- [ ] Install the **release** APK (`./gradlew assembleRelease` → `app/build/outputs/apk/release/app-arm64-v8a-release.apk`, ~99 MB) and repeat a quick pass: type a reminder, speak a note, screenshot with the key, search, export. R8 minification can only be checked on a real install.
+- [ ] Settings → Theme: Light / Dark switch immediately, regardless of the phone's setting.
+- [ ] Settings → Morning summary on: at 8 AM a notification lists open tasks with no time.
+- [ ] Battery: after a day of normal use, Settings → Battery → Space should show almost nothing in the background.

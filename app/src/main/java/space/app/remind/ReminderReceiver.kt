@@ -52,7 +52,10 @@ class RearmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
-            try { actions.rearmAll() } finally { pending.finish() }
+            try {
+                actions.rearmAll()
+                MorningAlarm.schedule(context, space.app.Settings(context).morningSummary)
+            } finally { pending.finish() }
         }
     }
 }

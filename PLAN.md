@@ -167,6 +167,8 @@ Every milestone is test-first: write the failing tests, then the code.
 - **Screen capture (M6):** the Essential Key's key code isn't documented, so Settings learns it ("press the key now"). Press = screenshot, hold (0.5 s) = voice, double (0.3 s) = open. Screenshots stay in the app's cache until saved, then move to the item's folder; never the Gallery. One expedited WorkManager job per capture reads it (OCR, QR, labels) and files a flyer as a reminder with Undo/Edit. Screenshot text is a column in the search index.
 - **Long screenshots** scroll with an accessibility gesture, up to 5 screens, and are joined at their overlap; toolbars that don't move are kept once.
 - **M7 extras:** calendar sync writes only events (noun + time), keeps each event's id, deletes it with the item, and remembers deletes made while sync was off. Markdown sync writes `<slug>-<id>.md` with front matter into a folder picked through Android's file picker. Export is a zip4j `.zip` (AES-256 with a password) with `items.json`, Markdown and files; import skips items already present. The widget uses the platform's `RemoteCollectionItems` (no library) and is redrawn on every change. Business cards open Android's pre-filled contact form; photos shared to Space are read like screenshots.
+- **M8 checks (25 Nov 2026):** release APK for the phone (arm64, R8 + resource shrinking) is **98.9 MB**: ONNX Runtime 36 MB, Moonshine 46 MB compressed (63 MB raw), OCR 9 MB, VAD 2 MB, code 3.4 MB. Next lever: a minimal ONNX Runtime build with only the operators these models use (needs building ORT from source). Background work is exactly the CLAUDE.md list: the key service, one job per capture, reminder alarms, the boot re-arm and the optional morning summary (one inexact daily alarm); the widget redraws only when items change.
+- **Theme:** Nothing-style monochrome with a red accent and monospace headings (Nothing's dot-matrix font isn't open); Light / Dark / Like the system, independent of the phone (wishlist).
 - **"Confirm first" setting** waits for captures that have no sheet (voice via the key in M5, screenshots in M6). Typed captures already show what they'll become before Save, and the chips override it.
 - **Bundled SQLite checked (M1):** `androidx.sqlite:sqlite-bundled` 2.7.1 is SQLite 3.50.1 with FTS5 and `SECURE_DELETE` compiled in; the trigram tokenizer works.
 
@@ -179,5 +181,5 @@ Nothing open right now.
 - Reading browser URLs via accessibility varies by browser.
 - Android battery optimization: ask for an "unrestricted" exemption.
 - ~~sherpa-onnx ships its own ONNX Runtime.~~ Gone in M5: no sherpa-onnx, one `onnxruntime-android`.
-- `libonnxruntime.so` is 36 MB on arm64. M8 size check: try the smaller ORT-format/minimal build.
+- `libonnxruntime.so` is 36 MB on arm64, the largest part of the APK. A minimal ORT build (only the operators used) is the next size step.
 - ~~The bundled SQLite driver must include FTS5 with the trigram tokenizer.~~ Checked in M1: it does.

@@ -159,7 +159,7 @@ Every milestone is test-first: write the failing tests, then the code.
 - **Testing:** unit tests run on the JVM; instrumented tests (DB, delete, alarms, UI) run on an emulator in GitHub Actions on every push.
 - **Working while you're away:** when something can only be checked on the phone, or a CI step stays broken, it's listed in [PHONE_CHECKS.md](PHONE_CHECKS.md) and work moves on.
 - **MiniLM training** runs in the cloud dev container (CPU, ~35 min), on sentences generated in `training/` only.
-- **M4 result:** the rules pass all 253 required rows of the test set (13 of 34 `known_weak` rows too), so **MiniLM is not added**.
+- **M4 result:** the rules passed all 253 required rows (13 of 34 `known_weak`). **MiniLM (25 Nov 2026) also passes all 253, and 16 of 34 `known_weak`**: it now handles lists without commas, word pairs ("salt and pepper"), "out of coffee" and gifts as tasks. Training needed three rounds of better generated sentences (varied shopping-list questions; items you no longer need; app messages like OTPs), never the test set.
 - **Events are saved as reminders** until calendar sync (M7).
 - **Voice without sherpa-onnx (M5):** sherpa-onnx isn't on Maven Central, its GitHub downloads are blocked in the dev container, and it bundles its own ONNX Runtime. Moonshine's encoder + merged decoder and Silero VAD run directly on `onnxruntime-android` (~150 lines), tested on the JVM and on the emulator.
 - **Voice details:** recordings over ~20 s are cut at pauses before transcribing; under 1 s of speech is discarded; the WAV is kept in the item's folder (playable in the editor, deleted with it).

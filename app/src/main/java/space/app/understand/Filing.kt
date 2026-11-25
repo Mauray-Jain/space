@@ -30,7 +30,7 @@ fun preview(u: Understood, formatTime: (LocalDateTime) -> String): String = when
     Kind.TASK -> "Task · ${u.title}"
     Kind.LIST -> "Shopping · ${u.items.joinToString(", ")}"
     Kind.QUESTION -> if (u.target == "shopping_list") "Opens your shopping list" else "Searches for “${u.search}”"
-    Kind.NOTE, Kind.CONTACT -> "Note"
+    Kind.NOTE, Kind.CONTACT -> "Saved as a note"
     Kind.DISCARD -> ""
 }
 

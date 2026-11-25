@@ -130,7 +130,7 @@ Moved to v2: picking a place needed a map, and maps need the network. In v1, "re
 | Deleted calendar event edited in the calendar app meanwhile | 🔧 | Delete by stored event ID regardless of edits |
 | Calendar sync off at delete time, on later | 🔧 | Remembered pending deletes are applied on next sync |
 | Item is inside an export file you saved earlier | ❌ | The file is yours, outside the app. Deletion can't reach it. Settings warns about this on export. |
-| Item's Markdown file already synced to another device (Syncthing etc.) | ❌ | Known issue: the app deletes its own copy only. GitHub issue to be opened once sync is built (M7). |
+| Item's Markdown file already synced to another device (Syncthing etc.) | ❌ | Known issue: the app deletes its own copy only. Tracked in [issue 1](https://github.com/Mauray-Jain/space/issues/1). |
 | Item was shared out (e.g. to WhatsApp) | ❌ | Can't be recalled. Out of our control. |
 | Undo after delete | 🔧 | Held in memory only for ~5 s; never written to disk |
 | Thumbnails / cache files | 🔧 | Stored inside the item's own folder so they go with it |

@@ -19,10 +19,11 @@ import space.app.ui.SpaceTheme
 @AndroidEntryPoint
 class QuickEntryActivity : ComponentActivity() {
     private val viewModel: QuickEntryViewModel by viewModels()
+    @javax.inject.Inject lateinit var screenshots: Screenshots
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val initialText = if (intent.action == Intent.ACTION_SEND) {
+        val initialText = if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
             sharedText(intent.getStringExtra(Intent.EXTRA_SUBJECT), intent.getStringExtra(Intent.EXTRA_TEXT))
         } else {
             ""
@@ -31,6 +32,14 @@ class QuickEntryActivity : ComponentActivity() {
         val problem = intent.getStringExtra(EXTRA_PROBLEM)
         if (savedInstanceState == null) {
             intent.getStringExtra(EXTRA_SCREENSHOT)?.let { viewModel.setShot(PendingShot(it, intent.getStringExtra(EXTRA_URL), intent.getStringExtra(EXTRA_APP))) }
+            // A shared photo: copied into the app, then treated like a screen capture.
+            if (intent.action == Intent.ACTION_SEND && intent.type?.startsWith("image/") == true) {
+                intent.getParcelableExtra(Intent.EXTRA_STREAM, android.net.Uri::class.java)?.let { uri ->
+                    val file = screenshots.newPendingFile()
+                    runCatching { contentResolver.openInputStream(uri)?.use { input -> file.outputStream().use { input.copyTo(it) } } }
+                    if (file.length() > 0) viewModel.setShot(PendingShot(file.path, null, referrer?.host))
+                }
+            }
         }
         setContent {
             SpaceTheme {

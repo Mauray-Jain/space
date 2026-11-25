@@ -45,7 +45,7 @@ import space.app.data.withoutTag
 /** Edit anything after it's created (wishlist #2). Saves when you go back. */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun EditorScreen(item: Item, recording: java.io.File?, onSave: (Item) -> Unit, onDelete: (Item) -> Unit, onBack: () -> Unit) {
+fun EditorScreen(item: Item, recording: java.io.File?, contactForm: android.content.Intent?, onSave: (Item) -> Unit, onDelete: (Item) -> Unit, onBack: () -> Unit) {
     val original = remember(item.id) { Checklist.parse(item.text) }
     var body by rememberSaveable(item.id) { mutableStateOf(original.body) }
     var type by rememberSaveable(item.id) { mutableStateOf(item.type) }
@@ -95,6 +95,10 @@ fun EditorScreen(item: Item, recording: java.io.File?, onSave: (Item) -> Unit, o
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (recording != null) PlayButton(recording)
+            if (contactForm != null) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                TextButton(onClick = { context.startActivity(contactForm) }) { Text("Add to contacts") }
+            }
             OutlinedTextField(
                 value = body,
                 onValueChange = { body = it },

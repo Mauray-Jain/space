@@ -45,6 +45,9 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
     val voice = VoiceInput(viewModelScope, recorder, notes)
 
+    /** The filled-in new-contact form for a business card item, if it is one. */
+    fun contactFormFor(item: Item): android.content.Intent? = space.app.vision.contactIn(item)?.let { space.app.capture.addContactIntent(it) }
+
     /** The voice recording kept with an item, if it has one. */
     fun recordingOf(item: Item): java.io.File? = java.io.File(repo.filesDir(item.id), Filer.RECORDING).takeIf { it.exists() }
 

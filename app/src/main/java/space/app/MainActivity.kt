@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
                     editing != null -> EditorScreen(
                         item = editing,
                         recording = viewModel.recordingOf(editing),
+                        contactForm = viewModel.contactFormFor(editing),
                         onSave = viewModel::save,
                         onDelete = { viewModel.delete(listOf(it)); editingId = null },
                         onBack = { editingId = null },

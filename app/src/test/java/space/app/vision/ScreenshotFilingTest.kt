@@ -50,6 +50,20 @@ class ScreenshotFilingTest {
         assertEquals("Order #40012 delivered #receipt\nhttps://shop.example/track/40012", filed.text)
     }
 
+    // EDGE_CASES.md §6: a business card stays a note named after the person, tagged for the contact form.
+    @Test
+    fun businessCardBecomesAContactNote() {
+        val card = listOf(
+            OcrLine("Rohan Mehta", 30), OcrLine("Senior Engineer", 14), OcrLine("Acme Pvt Ltd", 18),
+            OcrLine("+91 98200 12345", 12), OcrLine("rohan@acme.in", 12),
+        )
+        val filed = fileScreenshot(untitled, card, emptyList(), null, now)
+        assertEquals(ItemType.NOTE, filed.type)
+        assertEquals("Rohan Mehta · Acme Pvt Ltd #contact", filed.text)
+        assertEquals("Rohan Mehta", contactIn(filed)?.name)
+        assertEquals(listOf("+919820012345"), contactIn(filed)?.phones)
+    }
+
     @Test
     fun noTextKeepsTheTitle() = assertEquals(SCREENSHOT_TITLE, fileScreenshot(untitled, emptyList(), emptyList(), null, now).text)
 }

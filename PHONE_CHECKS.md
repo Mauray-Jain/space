@@ -44,3 +44,10 @@ Things CI's emulator can't cover. Try them on the Nothing Phone (3a) when you ca
 - [ ] Hold the key: the sheet opens already listening. Double-press: Space opens.
 - [ ] Press the key in a banking app or Netflix: "This app doesn't allow screenshots…" and you can still type or speak.
 - [ ] Search for a word that's only inside a screenshot: it's found.
+
+## Milestone 7
+- [ ] Settings → Calendar → pick your Google (or other) calendar. Type "dentist thursday 3pm": it shows in the calendar app. Delete it in Space: gone from the calendar too.
+- [ ] Settings → Markdown folder → pick a folder (e.g. your Obsidian vault). Items appear as `.md` files; edit one in Space and the file updates; delete it and the file goes.
+- [ ] Export with a password, then open the .zip on a computer with 7-Zip using that password. Import it on the phone: "Imported 0 items" (all already there).
+- [ ] Add the Space widget to the home screen: it lists upcoming reminders and open tasks; "+" opens the capture sheet; tapping an item opens it.
+- [ ] Screenshot (or share a photo of) a business card: a "Business card · Name" notification opens the filled-in contact form. The note also has "Add to contacts".

@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
         AutoMigration(from = 1, to = 2, spec = SpaceDatabase.V1to2::class),
         AutoMigration(from = 2, to = 3),
         AutoMigration(from = 3, to = 4, spec = SpaceDatabase.V3to4::class),
+        AutoMigration(from = 4, to = 5),
     ],
 )
 @TypeConverters(Converters::class)
@@ -44,7 +45,7 @@ abstract class SpaceDatabase : RoomDatabase() {
     }
 
     companion object {
-        const val VERSION = 4
+        const val VERSION = 5
 
         // Bundled driver: Android 12's own SQLite has no FTS5 trigram tokenizer.
         fun build(context: Context, name: String = "space.db"): SpaceDatabase =

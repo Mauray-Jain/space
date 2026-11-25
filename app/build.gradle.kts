@@ -146,6 +146,7 @@ dependencies {
     implementation(libs.onnxruntime.android)
     implementation(libs.zxing.core)
     implementation(libs.work.runtime)
+    implementation(libs.zip4j)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.serialization.json)

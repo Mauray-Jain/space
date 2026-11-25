@@ -106,6 +106,19 @@ class Reminders @Inject constructor(
         notifications.notify(TAG_CREATED, item.id.toInt(), notification)
     }
 
+    /** A business card was read: one tap opens the filled-in contact form. */
+    fun showContact(item: Item, form: Intent) {
+        val open = PendingIntent.getActivity(context, item.id.toInt(), form.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val notification = Notification.Builder(context, CHANNEL_CREATED)
+            .setSmallIcon(R.drawable.ic_capture)
+            .setContentTitle("Business card · ${item.text.lineSequence().first().substringBefore(" #")}")
+            .setContentText("Tap to add the contact")
+            .setContentIntent(open)
+            .setAutoCancel(true)
+            .build()
+        notifications.notify(TAG_CREATED, item.id.toInt(), notification)
+    }
+
     fun dismissCreated(id: Long) = notifications.cancel(TAG_CREATED, id.toInt())
 
     private fun fireIntent(id: Long) =

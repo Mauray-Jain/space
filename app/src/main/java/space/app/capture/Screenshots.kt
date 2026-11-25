@@ -29,6 +29,7 @@ import space.app.understand.OcrLine
 import space.app.vision.Ocr
 import space.app.vision.Rgb
 import space.app.vision.codes
+import space.app.vision.contactIn
 import space.app.vision.fileScreenshot
 
 /** Screen captures: stored in the item's own folder (never the Gallery), read by one short job each. */
@@ -101,6 +102,7 @@ class ReadScreenshotWorker(context: Context, params: WorkerParameters) : Corouti
         if (filed.type == ItemType.REMINDER && item.type != ItemType.REMINDER) {
             deps.reminders().showCreated(filed, "Reminder set · ${filed.remindAt?.let(::formatWhen)}")
         }
+        contactIn(filed)?.let { deps.reminders().showContact(filed, addContactIntent(it)) }
         return Result.success()
     }
 }

@@ -31,6 +31,21 @@ class Settings @Inject constructor(@ApplicationContext context: Context) {
         get() = prefs.getBoolean("keyEnabled", true)
         set(value) = prefs.edit { putBoolean("keyEnabled", value) }
 
+    /** Folder (a document tree you picked) that notes are copied to as Markdown, one way. Null = off. */
+    var markdownFolder: String?
+        get() = prefs.getString("markdownFolder", null)
+        set(value) = prefs.edit { putString("markdownFolder", value) }
+
+    /** Calendar that events are written to. -1 = calendar sync off. */
+    var calendarId: Long
+        get() = prefs.getLong("calendarId", -1)
+        set(value) = prefs.edit { putLong("calendarId", value) }
+
+    /** Calendar events of deleted items that couldn't be deleted yet (sync was off); deleted when it's back on. */
+    var pendingEventDeletes: Set<Long>
+        get() = prefs.getStringSet("pendingEventDeletes", emptySet())!!.map { it.toLong() }.toSet()
+        set(value) = prefs.edit { putStringSet("pendingEventDeletes", value.map { it.toString() }.toSet()) }
+
     var reminderStyle: ReminderStyle
         get() = prefs.getString("reminderStyle", null)?.let(ReminderStyle::valueOf) ?: ReminderStyle.NOTIFICATION
         set(value) = prefs.edit { putString("reminderStyle", value.name) }

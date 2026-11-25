@@ -27,4 +27,8 @@ data class Item(
     @ColumnInfo(defaultValue = "0") val notified: Boolean = false,
     /** Text read from the item's screenshot or photo, so it can be searched (EDGE_CASES.md §10). */
     val ocrText: String? = null,
+    /** An appointment ("dentist Thursday 3pm") rather than a to-do; goes to the calendar when sync is on. */
+    @ColumnInfo(defaultValue = "0") val event: Boolean = false,
+    /** The calendar event this item created, so deleting the item deletes it (EDGE_CASES.md §9). */
+    val eventId: Long? = null,
 )

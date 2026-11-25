@@ -13,9 +13,13 @@ class FilingTest {
         assertEquals(listOf(Draft(ItemType.REMINDER, "take my pills", LocalDateTime.parse("2026-11-26T08:00"), "FREQ=DAILY")),
             drafts("remind me to take my pills every day at 8"))
 
-    // Events are reminders until calendar sync (milestone 7).
-    @Test fun eventBecomesAReminder() =
-        assertEquals(ItemType.REMINDER, drafts("dentist thursday 3pm").single().type)
+    // Events are reminders marked as events, for the calendar.
+    @Test fun eventBecomesAReminderMarkedAsEvent() {
+        val d = drafts("dentist thursday 3pm").single()
+        assertEquals(ItemType.REMINDER, d.type)
+        assertEquals(true, d.event)
+        assertEquals(false, drafts("remind me to call mom at 6").single().event)
+    }
 
     @Test fun listBecomesShoppingItems() =
         assertEquals(listOf("milk", "eggs", "bread"), drafts("buy milk, eggs and bread").map { it.text })

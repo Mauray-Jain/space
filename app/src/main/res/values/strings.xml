@@ -3,4 +3,6 @@
     <string name="capture_label">Save to Space</string>
     <string name="key_service_label">Space: Essential Key</string>
     <string name="key_service_description">Lets the Essential Key capture into Space: press to save the screen, hold to speak, double-press to open Space. It reads the screen only when you press the key, and nothing leaves the phone.</string>
+    <string name="widget_empty">Nothing coming up</string>
+    <string name="widget_description">Your next reminders and open tasks, and a button to capture.</string>
 </resources>

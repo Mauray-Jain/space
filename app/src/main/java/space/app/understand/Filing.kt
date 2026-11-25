@@ -7,16 +7,16 @@ import space.app.data.withTag
 import space.app.remind.describe
 
 /** An item about to be saved. */
-data class Draft(val type: ItemType, val text: String, val remindAt: LocalDateTime? = null, val repeat: String? = null)
+data class Draft(val type: ItemType, val text: String, val remindAt: LocalDateTime? = null, val repeat: String? = null, val event: Boolean = false)
 
 /**
- * Auto-filing: what a capture becomes. Events are saved as reminders until calendar sync
- * (milestone 7). Questions and discards save nothing. #tags in [original] stay with the item.
+ * Auto-filing: what a capture becomes. Events are reminders marked as events (they also go to
+ * the calendar when sync is on). Questions and discards save nothing. #tags in [original] stay with the item.
  */
 fun drafts(u: Understood, original: String): List<Draft> {
     fun keepTags(title: String) = tags(original).fold(title) { t, tag -> withTag(t, tag) }
     return when (u.type) {
-        Kind.REMINDER, Kind.EVENT -> listOf(Draft(ItemType.REMINDER, keepTags(u.title.orEmpty().ifBlank { original.trim() }), u.at, u.repeat))
+        Kind.REMINDER, Kind.EVENT -> listOf(Draft(ItemType.REMINDER, keepTags(u.title.orEmpty().ifBlank { original.trim() }), u.at, u.repeat, event = u.type == Kind.EVENT))
         Kind.TASK -> listOf(Draft(ItemType.TASK, keepTags(u.title.orEmpty().ifBlank { original.trim() })))
         Kind.LIST -> u.items.map { Draft(ItemType.SHOPPING, it) }
         Kind.NOTE, Kind.CONTACT -> listOf(Draft(ItemType.NOTE, original.trim()))
@@ -50,7 +50,7 @@ class Filer @javax.inject.Inject constructor(
         audio: FloatArray? = null, screenshot: java.io.File? = null, source: String? = null, app: String? = null,
     ): List<Long> {
         val ids = if (understood != null) {
-            drafts(understood, text).map { repo.add(it.type, it.text, it.remindAt, it.repeat) }
+            drafts(understood, text).map { repo.add(it.type, it.text, it.remindAt, it.repeat, it.event) }
         } else {
             listOf(repo.add(type, text, remindAt))
         }

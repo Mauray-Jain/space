@@ -212,7 +212,7 @@ def question_search():
 FACT_SUBJECTS = ["the wifi password", "the gate code", "the locker number", "my seat", "the parking spot", "the bike lock code",
                  "Kabir's flat number", "the guest wifi", "the office extension", "my blood group", "the car plate"]
 def note():
-    k = random.randrange(10)
+    k = random.randrange(12)
     e = Ex()
     if k == 0: e.add(f"{pick(FACT_SUBJECTS)} is {pick(['B4', 'hunter7', 'level 2', '9182', 'row 12 seat 4', 'O positive', 'MH 12 AB 3456', 'tiger22'])}")
     elif k == 1: e.add(f"{pick(['idea', 'book', 'movie to watch', 'gift idea', 'recipe', 'podcast', 'note', 'quote'])}: {pick(['a lamp that follows the sun', 'The Overstory', 'Dune part two', 'a wool scarf for dad', 'masala oats with peas', 'the daily stoic', 'be kind'])}")
@@ -233,7 +233,22 @@ def note():
                 "next month", "and also ask mom", "if she wants to come", "on friday at 6", "we could leave early", "and take the train",
                 "instead of driving", "it might be cheaper", "but i'm not sure", "let me check later", "anyway", "the weather looks fine"]
         e.add(" ".join(random.choice(bits) for _ in range(random.randint(16, 26))))
-    else: e.add(f"{pick(['recipe', 'article', 'link', 'video'])} {pick(['https://example.org/dal', 'www.example.com/notes', 'example.in/read'])}")
+    elif k == 9: e.add(f"{pick(['recipe', 'article', 'link', 'video'])} {pick(['https://example.org/dal', 'www.example.com/notes', 'example.in/read'])}")
+    elif k == 10:  # items you no longer need: not a shopping list
+        its = " and ".join(pick(ITEMS) for _ in range(random.choice([1, 1, 2])))
+        e.add(pick([f"we no longer need {its}", f"we don't need {its} anymore", f"no need for {its}", f"we have enough {its}",
+                    f"already bought {its}", f"got the {its} already", f"skip the {its} this week", f"i don't need {its}",
+                    f"we still have {its}", f"cancel the {its}", f"no more {its} needed"]))
+    else:  # messages from apps and services (OTPs, deliveries, bank alerts): information, not to-dos
+        n = random.randint(100000, 999999)
+        e.add(pick([
+            f"Your OTP is {n}. Valid for {random.randint(3, 15)} minutes.", f"{n} is your verification code. Do not share it.",
+            f"Use {n} to log in. It expires in {random.randint(5, 10)} minutes.", f"Your order #{random.randint(1000, 99999)} has been delivered.",
+            f"Your package will arrive by {pick(DAYS)}.", f"Rs {random.randint(100, 9999)} debited from your account on {random.randint(1, 28)} {pick(['Nov', 'Dec', 'Jan'])}.",
+            f"Your booking is confirmed. PNR {random.randint(1000000000, 9999999999)}.", "Payment received. Thank you for shopping with us.",
+            f"Your appointment request has been received. Ref {n}.", f"Login code: {n}", "Your table for 4 is confirmed.",
+            f"Balance: Rs {random.randint(1000, 99999)}.", f"Your ride is arriving in {random.randint(2, 9)} minutes.",
+        ]))
     return e.build("note")
 
 MAKERS = [(reminder, 30), (event_ex, 12), (task, 16), (shopping, 14), (question_list, 5), (question_search, 7), (note, 18)]

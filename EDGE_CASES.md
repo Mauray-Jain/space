@@ -1,6 +1,6 @@
 # Edge cases: does the local stack hold up?
 
-Stack: Moonshine + Silero VAD → own rules for intent and slots + own date/time parser (+ libphonenumber, Android Patterns) · PaddleOCR + ZXing for images. MiniLM is added only if the rules fail the test set.
+Stack: Moonshine + Silero VAD on ONNX Runtime → own rules for intent and slots + own date/time parser (+ libphonenumber, Android Patterns) · PaddleOCR + ZXing for images. MiniLM is added only if the rules fail the test set.
 
 Legend: ✅ handled by the stack · 🔧 handled by a specific rule we must write · 🙋 the app asks / you fix it · ⚠️ works, but known to be weak · ❌ not handled in v1
 

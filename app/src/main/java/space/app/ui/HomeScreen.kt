@@ -55,6 +55,7 @@ fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit, onSettings: () 
     val state by viewModel.state.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
     val undoable by viewModel.undoable.collectAsStateWithLifecycle()
+    val voiceState by viewModel.voice.state.collectAsStateWithLifecycle()
     var adding by rememberSaveable { mutableStateOf(false) }
     val query by viewModel.query.collectAsStateWithLifecycle()
     val searching = query != null
@@ -157,7 +158,9 @@ fun HomeScreen(viewModel: HomeViewModel, onOpen: (Item) -> Unit, onSettings: () 
             initialType = if (state.filter == Filter.SHOPPING) ItemType.SHOPPING else ItemType.NOTE,
             understand = viewModel::understand,
             onSave = { viewModel.capture(it); adding = false },
-            onDismiss = { adding = false },
+            onDismiss = { viewModel.voice.reset(); adding = false },
+            voice = voiceState,
+            onMic = viewModel.voice::toggle,
         )
     }
 }

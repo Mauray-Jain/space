@@ -45,7 +45,7 @@ import space.app.data.withoutTag
 /** Edit anything after it's created (wishlist #2). Saves when you go back. */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun EditorScreen(item: Item, onSave: (Item) -> Unit, onDelete: (Item) -> Unit, onBack: () -> Unit) {
+fun EditorScreen(item: Item, recording: java.io.File?, onSave: (Item) -> Unit, onDelete: (Item) -> Unit, onBack: () -> Unit) {
     val original = remember(item.id) { Checklist.parse(item.text) }
     var body by rememberSaveable(item.id) { mutableStateOf(original.body) }
     var type by rememberSaveable(item.id) { mutableStateOf(item.type) }
@@ -94,6 +94,7 @@ fun EditorScreen(item: Item, onSave: (Item) -> Unit, onDelete: (Item) -> Unit, o
             Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp).imePadding().verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (recording != null) PlayButton(recording)
             OutlinedTextField(
                 value = body,
                 onValueChange = { body = it },
@@ -146,4 +147,24 @@ fun EditorScreen(item: Item, onSave: (Item) -> Unit, onDelete: (Item) -> Unit, o
             }
         }
     }
+}
+
+/** Plays the voice recording kept with an item: the original, in case the transcript is wrong. */
+@Composable
+private fun PlayButton(file: java.io.File) {
+    var player by remember(file) { mutableStateOf<android.media.MediaPlayer?>(null) }
+    androidx.compose.runtime.DisposableEffect(file) { onDispose { player?.release() } }
+    TextButton(onClick = {
+        val p = player
+        if (p != null) {
+            p.release(); player = null
+        } else {
+            player = android.media.MediaPlayer().apply {
+                setDataSource(file.path)
+                setOnCompletionListener { it.release(); player = null }
+                prepare()
+                start()
+            }
+        }
+    }) { Text(if (player != null) "Stop recording" else "Play recording") }
 }

@@ -37,10 +37,23 @@ fun preview(u: Understood, formatTime: (LocalDateTime) -> String): String = when
 /** Saves a capture from the quick-entry sheet: the automatic reading if it was kept, else exactly what was picked. */
 @javax.inject.Singleton
 class Filer @javax.inject.Inject constructor(private val repo: space.app.data.ItemRepository) {
-    suspend fun file(type: ItemType, text: String, remindAt: LocalDateTime?, understood: Understood?): List<Long> =
-        if (understood != null) {
+    /** [audio] (a voice capture) is kept in the first item's folder, so it goes with it on delete. */
+    suspend fun file(type: ItemType, text: String, remindAt: LocalDateTime?, understood: Understood?, audio: FloatArray? = null): List<Long> {
+        val ids = if (understood != null) {
             drafts(understood, text).map { repo.add(it.type, it.text, it.remindAt, it.repeat) }
         } else {
             listOf(repo.add(type, text, remindAt))
         }
+        if (audio != null) ids.firstOrNull()?.let { id ->
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val dir = repo.filesDir(id).apply { mkdirs() }
+                java.io.File(dir, RECORDING).outputStream().use { space.app.voice.writeWav(audio, it) }
+            }
+        }
+        return ids
+    }
+
+    companion object {
+        const val RECORDING = "recording.wav"
+    }
 }

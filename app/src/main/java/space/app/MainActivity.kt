@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
                     inSettings -> SettingsScreen(settingsViewModel, onBack = { inSettings = false })
                     editing != null -> EditorScreen(
                         item = editing,
+                        recording = viewModel.recordingOf(editing),
                         onSave = viewModel::save,
                         onDelete = { viewModel.delete(listOf(it)); editingId = null },
                         onBack = { editingId = null },

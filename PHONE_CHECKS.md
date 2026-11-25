@@ -24,3 +24,11 @@ Things CI's emulator can't cover. Try them on the Nothing Phone (3a) when you ca
 - [ ] Quick entry: type "remind me to call mom at 6". The Reminder chip lights up and the line under the text reads "Reminder · call mom · …, 18:00". Save: a reminder "call mom" appears.
 - [ ] Type "buy milk, eggs and bread": three shopping items. Tap Note before Save: one note instead.
 - [ ] Type "what's on my grocery list?" and tap Show: the shopping list opens.
+
+## Milestone 5
+- [ ] Quick entry → Speak, say "remind me to call mom at six", Stop. The text appears and the Reminder chip lights up.
+- [ ] Music playing in another app pauses while recording and resumes after.
+- [ ] Tap Speak and Stop without talking: "Didn't hear anything", nothing saved.
+- [ ] During a phone call, Speak says "Can't record during a call".
+- [ ] Open a saved voice item: "Play recording" plays what you said. Delete it: the recording goes too.
+- [ ] Time a 10 s voice note on the phone (transcribing should take a second or two; report if it's slow).

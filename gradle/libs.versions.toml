@@ -11,6 +11,7 @@ lifecycle = "2.11.1"
 coreKtx = "1.19.1"
 junit = "4.13.2"
 libphonenumber = "9.0.44"
+onnxruntime = "1.32.0"
 serializationJson = "1.7.3"
 androidxTestRunner = "1.7.0"
 androidxTestCore = "1.7.0"
@@ -31,6 +32,8 @@ sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sql
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 junit = { module = "junit:junit", version.ref = "junit" }
+onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
+onnxruntime-jvm = { module = "com.microsoft.onnxruntime:onnxruntime", version.ref = "onnxruntime" }
 libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serializationJson" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }

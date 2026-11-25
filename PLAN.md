@@ -32,12 +32,12 @@ See [RESEARCH.md](RESEARCH.md) for what Essential Space does today and the user 
 
 Rule: every model is **loaded only when it's used and unloaded right after**, and nothing heavy runs in the background.
 
-Fully open source, no Google ML Kit, nothing sent anywhere. The app has **no INTERNET permission**. Models ship inside the APK (a Gradle task downloads them at build time; they're not committed). One AI engine: **ONNX Runtime**, a single `onnxruntime-android` build shared by all models, with sherpa-onnx linked against the same version so the APK has exactly one `libonnxruntime.so`.
+Fully open source, no Google ML Kit, nothing sent anywhere. The app has **no INTERNET permission**. Models ship inside the APK (a Gradle task downloads them at build time; they're not committed). One AI engine: **ONNX Runtime**, a single `onnxruntime-android` build (Maven Central) that runs every model directly, so the APK has exactly one `libonnxruntime.so`.
 
 | Job | Model / tool | Size | In v1? |
 |---|---|---|---|
-| Speech → text | **Moonshine Base** (English), via sherpa-onnx | ~60–70 MB | Yes |
-| ↳ lighter option | Moonshine Tiny | ~30 MB | Setting |
+| Speech → text | **Moonshine Base** (English, int8, onnx-community export), run directly on ONNX Runtime | ~63 MB | Yes |
+| ↳ lighter option | Moonshine Tiny | ~28 MB | Later: v1 has no downloads, and shipping both is ~90 MB |
 | Trim silence / detect speech | Silero VAD | ~2 MB | Yes |
 | Understanding what you meant (note / task / reminder / event / list / question) + the important words (title, items, time phrase) | **Rules**: keywords, verb-first, negation guard, list splitting, self-corrections | ~0 | Yes |
 | ↳ only if the rules fail rows of the M4 test set | MiniLM-L6 fine-tuned for intent + slot tagging, int8 | ~25 MB | Only if needed |
@@ -162,6 +162,8 @@ Every milestone is test-first: write the failing tests, then the code.
 - **MiniLM training**, if the rules fail M4, may run in the cloud dev container (CPU), on sentences in `training/` only.
 - **M4 result:** the rules pass all 253 required rows of the test set (13 of 34 `known_weak` rows too), so **MiniLM is not added**.
 - **Events are saved as reminders** until calendar sync (M7).
+- **Voice without sherpa-onnx (M5):** sherpa-onnx isn't on Maven Central, its GitHub downloads are blocked in the dev container, and it bundles its own ONNX Runtime. Moonshine's encoder + merged decoder and Silero VAD run directly on `onnxruntime-android` (~150 lines), tested on the JVM and on the emulator.
+- **Voice details:** recordings over ~20 s are cut at pauses before transcribing; under 1 s of speech is discarded; the WAV is kept in the item's folder (playable in the editor, deleted with it).
 - **"Confirm first" setting** waits for captures that have no sheet (voice via the key in M5, screenshots in M6). Typed captures already show what they'll become before Save, and the chips override it.
 - **Bundled SQLite checked (M1):** `androidx.sqlite:sqlite-bundled` 2.7.1 is SQLite 3.50.1 with FTS5 and `SECURE_DELETE` compiled in; the trigram tokenizer works.
 
@@ -173,5 +175,6 @@ Nothing open right now.
 - The accessibility service causes friction with some banking apps. Keep it minimal, with a toggle.
 - Reading browser URLs via accessibility varies by browser.
 - Android battery optimization: ask for an "unrestricted" exemption.
-- sherpa-onnx ships its own ONNX Runtime. Check in M5 that it loads with the shared `onnxruntime-android` build (same version, one `.so`).
+- ~~sherpa-onnx ships its own ONNX Runtime.~~ Gone in M5: no sherpa-onnx, one `onnxruntime-android`.
+- `libonnxruntime.so` is 36 MB on arm64. M8 size check: try the smaller ORT-format/minimal build.
 - ~~The bundled SQLite driver must include FTS5 with the trigram tokenizer.~~ Checked in M1: it does.

@@ -26,6 +26,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import space.app.capture.VoiceState
 import space.app.data.ItemType
 import space.app.understand.Kind
 import space.app.understand.Understood
@@ -57,7 +65,10 @@ fun QuickEntrySheet(
     understand: (String) -> Understood?,
     onSave: (Capture) -> Unit,
     onDismiss: () -> Unit,
+    voice: VoiceState,
+    onMic: () -> Unit,
     initialType: ItemType = ItemType.NOTE,
+    listenAtStart: Boolean = false,
 ) {
     var text by rememberSaveable { mutableStateOf(initialText) }
     var manualType by rememberSaveable { mutableStateOf<ItemType?>(initialType.takeIf { it != ItemType.NOTE }) }
@@ -67,6 +78,17 @@ fun QuickEntrySheet(
     val remindAt = manualTime ?: understood?.at ?: remember { defaultReminderTime() }
     val auto = manualType == null && manualTime == null
     val focus = remember { FocusRequester() }
+    val context = LocalContext.current
+    val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) onMic() }
+    fun mic() {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) onMic()
+        else askMic.launch(Manifest.permission.RECORD_AUDIO)
+    }
+    // What you said goes into the text, where the rules read it like anything typed.
+    LaunchedEffect(voice) {
+        if (voice is VoiceState.Heard) text = listOf(text.trim(), voice.text).filter { it.isNotEmpty() }.joinToString(" ")
+    }
+    LaunchedEffect(Unit) { if (listenAtStart) mic() }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp).imePadding(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -85,6 +107,18 @@ fun QuickEntrySheet(
                 listOf(ItemType.NOTE to "Note", ItemType.TASK to "Task", ItemType.REMINDER to "Reminder", ItemType.SHOPPING to "Shopping").forEach { (t, label) ->
                     FilterChip(selected = type == t, onClick = { manualType = t }, label = { Text(label) })
                 }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = ::mic, enabled = voice != VoiceState.Transcribing) {
+                    Text(
+                        when (voice) {
+                            VoiceState.Listening -> "Stop"
+                            VoiceState.Transcribing -> "Writing…"
+                            else -> "Speak"
+                        },
+                    )
+                }
+                if (voice is VoiceState.Problem) Text(voice.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (type == ItemType.REMINDER) WhenPicker(remindAt) { manualTime = it; manualType = ItemType.REMINDER }

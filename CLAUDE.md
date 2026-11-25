@@ -12,7 +12,7 @@ A local-first Android app for the Nothing Phone (3a): a better Essential Space. 
 - **Deletion really deletes.** Every delete goes through the single `delete(item)` path, which removes the DB row, FTS entry, files, Markdown file, alarms and calendar event, then checkpoints the WAL. Never add a second delete path or a soft-delete/trash.
 - **Models stay light.** Load a model only while it's used and unload it after. Any new model needs a size/RAM justification in PLAN.md first.
 - **Background work only where it's truly needed, and kept tiny:** the accessibility service (listens for the key only), one short WorkManager job per capture, alarms, the boot re-arm, the optional morning summary. No model and no long-running work in the background. Any new background job needs a reason in PLAN.md §4 first.
-- One ML engine: a single ONNX Runtime build, shared by sherpa-onnx (voice) and everything else. No Google ML Kit, no LiteRT.
+- One ML engine: a single ONNX Runtime build (`onnxruntime-android`) that runs every model, voice included. No Google ML Kit, no LiteRT, no second runtime.
 
 ## Code style
 

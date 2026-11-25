@@ -19,7 +19,10 @@ import space.app.data.Item
 import space.app.data.ItemRepository
 import space.app.data.ItemType
 import space.app.data.tags
+import space.app.capture.Recorder
+import space.app.capture.VoiceInput
 import space.app.understand.Filer
+import space.app.voice.VoiceNotes
 import space.app.understand.Kind
 import space.app.understand.Understood
 import space.app.understand.understand
@@ -34,7 +37,17 @@ data class HomeState(
 )
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val repo: ItemRepository, private val filer: Filer) : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val repo: ItemRepository,
+    private val filer: Filer,
+    recorder: Recorder,
+    notes: VoiceNotes,
+) : ViewModel() {
+    val voice = VoiceInput(viewModelScope, recorder, notes)
+
+    /** The voice recording kept with an item, if it has one. */
+    fun recordingOf(item: Item): java.io.File? = java.io.File(repo.filesDir(item.id), Filer.RECORDING).takeIf { it.exists() }
+
     private val filter = MutableStateFlow(Filter.ALL)
     private val tag = MutableStateFlow<String?>(null)
     private val sort = MutableStateFlow(Sort.NEWEST)
@@ -85,8 +98,9 @@ class HomeViewModel @Inject constructor(private val repo: ItemRepository, privat
     /** Files a capture, or answers it if it was a question ("ask about your stuff"). */
     fun capture(c: Capture) {
         val u = c.understood
+        val audio = voice.takeAudio()
         if (u?.type == Kind.QUESTION) return ask(u)
-        viewModelScope.launch { filer.file(c.type, c.text, c.remindAt, u) }
+        viewModelScope.launch { filer.file(c.type, c.text, c.remindAt, u, audio) }
     }
 
     /** No generated answer, just the right items: the shopping list, or a search (PLAN.md §2). */

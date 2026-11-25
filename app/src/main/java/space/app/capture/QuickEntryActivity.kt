@@ -2,6 +2,8 @@ package space.app.capture
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -23,10 +25,15 @@ class QuickEntryActivity : ComponentActivity() {
         } else {
             ""
         }
+        val listen = intent.getBooleanExtra(EXTRA_VOICE, false)
         setContent {
             SpaceTheme {
+                val voice by viewModel.voice.state.collectAsStateWithLifecycle()
                 QuickEntrySheet(
                     initialText = initialText,
+                    voice = voice,
+                    onMic = viewModel.voice::toggle,
+                    listenAtStart = listen,
                     understand = viewModel::understand,
                     onSave = { c ->
                         val u = c.understood
@@ -43,9 +50,14 @@ class QuickEntryActivity : ComponentActivity() {
                         }
                         finish()
                     },
-                    onDismiss = { finish() },
+                    onDismiss = { viewModel.voice.reset(); finish() },
                 )
             }
         }
+    }
+
+    companion object {
+        /** Start listening right away (voice capture from the Essential Key, milestone 6). */
+        const val EXTRA_VOICE = "space.app.VOICE"
     }
 }

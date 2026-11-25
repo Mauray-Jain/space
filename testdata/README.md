@@ -2,7 +2,7 @@
 
 `understanding_test.jsonl` has one test case per line. It covers every row in [EDGE_CASES.md](../EDGE_CASES.md) §1–§7, plus harder variants built to break the rules: negations in odd places, self-corrections, times in words, ambiguous days, list pairs, tasks that look like shopping, questions phrased as commands, speech-to-text noise and OCR text.
 
-**Never train on this file.** If MiniLM is ever needed, its training sentences go in `training/`, written separately.
+**Never train on this file.** MiniLM's training sentences are generated in `training/`, separately; `training/dedupe.py` only removes any that are identical to an input here.
 
 ## Format
 

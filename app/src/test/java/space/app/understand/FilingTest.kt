@@ -7,7 +7,13 @@ import space.app.data.ItemType
 
 class FilingTest {
     private val now = LocalDateTime.parse("2026-11-25T14:00")
-    private fun drafts(text: String) = drafts(understand(text, now).single(), text)
+    companion object {
+        private val understander = java.io.File(System.getProperty("models.dir")!!).let { dir ->
+            Understander(java.io.File(dir, "intent-minilm.onnx").readBytes(), java.io.File(dir, "intent-vocab.txt").readLines())
+        }
+    }
+
+    private fun drafts(text: String) = drafts(understander.understand(text, now).single(), text)
 
     @Test fun reminderKeepsTheTitleTimeAndRepeat() =
         assertEquals(listOf(Draft(ItemType.REMINDER, "take my pills", LocalDateTime.parse("2026-11-26T08:00"), "FREQ=DAILY")),

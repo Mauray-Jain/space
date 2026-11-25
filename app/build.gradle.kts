@@ -75,6 +75,7 @@ abstract class DownloadFiles : DefaultTask() {
 /** Copies the downloaded models for the APK, turning Moonshine's 3.8 MB tokenizer.json into a plain tokens.txt. */
 abstract class PrepareModels : DefaultTask() {
     @get:InputDirectory abstract val downloads: DirectoryProperty
+    @get:InputDirectory abstract val trained: DirectoryProperty
     @get:OutputDirectory abstract val outputDir: DirectoryProperty
 
     @TaskAction
@@ -82,6 +83,8 @@ abstract class PrepareModels : DefaultTask() {
         val src = downloads.get().asFile
         val out = outputDir.get().asFile.apply { deleteRecursively(); mkdirs() }
         src.listFiles { f -> f.name.endsWith(".onnx") || f.name == "ocr-dict.txt" }!!.forEach { it.copyTo(File(out, it.name)) }
+        // The intent model is trained in this repo (training/), so it's committed rather than downloaded.
+        trained.get().asFile.listFiles()!!.forEach { it.copyTo(File(out, it.name)) }
         @Suppress("UNCHECKED_CAST")
         val json = groovy.json.JsonSlurper().parse(File(src, "moonshine-tokenizer.json")) as Map<String, Any>
         @Suppress("UNCHECKED_CAST")
@@ -111,6 +114,7 @@ val downloadModels by tasks.registering(DownloadFiles::class) {
 }
 val prepareModels by tasks.registering(PrepareModels::class) {
     downloads = downloadModels.flatMap { it.outputDir }
+    trained = rootProject.layout.projectDirectory.dir("models")
     outputDir = layout.buildDirectory.dir("models")
 }
 // A LibriSpeech clip for the transcription test (not shipped).

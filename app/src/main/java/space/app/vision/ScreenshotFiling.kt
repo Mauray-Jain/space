@@ -7,7 +7,7 @@ import space.app.data.ItemType
 import space.app.data.withTag
 import space.app.understand.Kind
 import space.app.understand.OcrLine
-import space.app.understand.understand
+import space.app.understand.understandScreen
 
 const val CONTACT_TAG = "contact"
 
@@ -15,7 +15,7 @@ const val CONTACT_TAG = "contact"
 fun contactIn(item: Item, locale: Locale = Locale.getDefault()): space.app.understand.Understood? {
     if (CONTACT_TAG !in space.app.data.tags(item.text)) return null
     val text = item.ocrText ?: return null
-    return understand(text, LocalDateTime.now(), locale, text.lines().map { OcrLine(it, 0) }).firstOrNull()?.takeIf { it.type == Kind.CONTACT }
+    return understandScreen(text, LocalDateTime.now(), locale, text.lines().map { OcrLine(it, 0) }).takeIf { it.type == Kind.CONTACT }
 }
 
 /** The text a screen capture gets until it's been read. */
@@ -41,7 +41,7 @@ fun fileScreenshot(item: Item, lines: List<OcrLine>, codes: List<String>, app: S
     if (lines.isEmpty() && codes.isEmpty()) return item
     val ocrText = lines.joinToString("\n") { it.text }.ifEmpty { null }
     val untouched = item.text.lineSequence().first() == SCREENSHOT_TITLE
-    val read = lines.takeIf { it.isNotEmpty() }?.let { understand(ocrText!!, now, locale, it).firstOrNull() }
+    val read = lines.takeIf { it.isNotEmpty() }?.let { understandScreen(ocrText!!, now, locale, it) }
     if (untouched && read != null && (read.type == Kind.EVENT || read.type == Kind.REMINDER) && read.at != null) {
         return item.copy(type = ItemType.REMINDER, text = read.title ?: lines.first().text, remindAt = read.at, event = read.type == Kind.EVENT, ocrText = ocrText)
     }

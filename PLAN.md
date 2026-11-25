@@ -14,7 +14,7 @@ See [RESEARCH.md](RESEARCH.md) for what Essential Space does today and the user 
 | Audience | Personal; fine if others install it |
 | AI | **All on-device**, light, loaded only when needed. No Claude, no cloud, ever. |
 | Speech → text | **Moonshine Base** (English) |
-| Understanding | **Rules first** (intent, slots, dates). A small model (MiniLM) only if the rules fail the M4 test set. |
+| Understanding | **MiniLM** (intent + word tags) trained in `training/`; dates and times by our own rule-based parser. |
 | Notes | Stored in the app + optional one-way Markdown folder sync (Obsidian/Syncthing) |
 | Tasks / to-dos | In the app only, with notifications |
 | Reminders/events | **Automatic** by default with an Undo/Edit notification; "confirm first" is a setting |
@@ -39,8 +39,7 @@ Fully open source, no Google ML Kit, nothing sent anywhere. The app has **no INT
 | Speech → text | **Moonshine Base** (English, int8, onnx-community export), run directly on ONNX Runtime | ~63 MB | Yes |
 | ↳ lighter option | Moonshine Tiny | ~28 MB | Later: v1 has no downloads, and shipping both is ~90 MB |
 | Trim silence / detect speech | Silero VAD | ~2 MB | Yes |
-| Understanding what you meant (note / task / reminder / event / list / question) + the important words (title, items, time phrase) | **Rules**: keywords, verb-first, negation guard, list splitting, self-corrections | ~0 | Yes |
-| ↳ only if the rules fail rows of the M4 test set | MiniLM-L6 fine-tuned for intent + slot tagging, int8 | ~25 MB | Only if needed |
+| Understanding what you meant (note / task / reminder / event / list / question) + the important words (title, list items, search words) | **MiniLM-L6** (all-MiniLM-L6-v2, Apache-2.0) fine-tuned for intent + word tagging, int8, loaded only while the capture sheet is open. Text cleanup (fillers, number words, self-corrections) stays rule-based. | ~23 MB | Yes |
 | Dates, times, repeats, fuzzy times | **Own rule-based parser** (port of the *chrono* library + our additions) | ~0 | Yes |
 | Phones, emails, URLs, money | **libphonenumber** + small regexes (not `Patterns`, so the rules run as JVM unit tests) | ~1 MB | Yes |
 | Text in screenshots & photos | **PaddleOCR**: PP-OCRv3 detection + PP-OCRv5 English recognition (monkt/paddleocr-onnx, Apache-2.0) on ONNX Runtime | ~10 MB | Yes |
@@ -51,9 +50,9 @@ Fully open source, no Google ML Kit, nothing sent anywhere. The app has **no INT
 | Other languages | Moonshine / Whisper language models | ~30–75 MB each | v2 |
 | Search by meaning | Small embedding model | ~25 MB | v2 |
 
-**Base install: ~75–95 MB of models** (~100–120 MB if MiniLM turns out to be needed).
+**Base install: ~100 MB of models** (MiniLM included).
 
-If MiniLM is needed, it's trained on a separate set of synthetic sentences in `training/`. The test set in `testdata/` is **never** used for training. The commit that adds MiniLM names the test rows the rules couldn't pass.
+MiniLM is trained on synthetic sentences generated in `training/` (see its README). The test set in `testdata/` is **never** used for training; it only judges the model.
 
 ### How typo-tolerant search works
 The trigram index cuts text into 3-letter pieces ("dentist" → den, ent, nti, tis, ist), so any part of a word can be found. A normal search needs *every* piece to match, so the typo "dentsit" finds nothing. So: if the normal search finds nothing, search again for items sharing *any* piece and rank them by how many they share. Searches shorter than 3 letters use plain `LIKE`.
@@ -131,7 +130,7 @@ Every milestone is test-first: write the failing tests, then the code.
 1. **Skeleton:** Compose app, Room + FTS5 trigram schema (check the bundled driver works), quick-entry sheet, QS tile, share target, the single delete path
 2. **Notes & tasks:** editor, tags/pin/archive/bulk delete, subtasks, shopping list, typo-tolerant search
 3. **Reminders:** alarms, Notification/Alarm style setting, snooze, recurring, Undo notification, reboot re-arm
-4. **Understanding:** rules + date/time parser, auto-filing, "ask about your stuff"; passes `testdata/understanding_test.jsonl` (rows marked `known_weak` are reported, not required). Add MiniLM only if the rules can't pass.
+4. **Understanding:** MiniLM (intent + word tags) + date/time parser, auto-filing, "ask about your stuff"; passes `testdata/understanding_test.jsonl` (rows marked `known_weak` are reported, not required).
 5. **Voice:** Moonshine + VAD on the shared ONNX Runtime, pause music while recording
 6. **Screen capture:** accessibility service, Essential Key, crop, OCR/labels, source links, long screenshots
 7. **Extras:** business cards, calendar sync, scrollable widget, Markdown folder sync (then open a GitHub issue for the "synced copies survive deletion" known issue), export/import
@@ -144,7 +143,7 @@ Every milestone is test-first: write the failing tests, then the code.
 
 - **No Gemini, no cloud, ever.** The app stays 100% local; screenshots use on-phone OCR only.
 - **No INTERNET permission.** Language packs moved to v2, so v1 never downloads anything.
-- **Understanding is rules first.** MiniLM only if the M4 test set shows the rules can't do it. FunctionGemma dropped.
+- ~~Understanding is rules first.~~ **Changed 25 Nov 2026 (owner's decision): MiniLM replaces the intent rules.** The rules passed the test set, but a trained model generalises to phrasings no rule anticipated. Dates and times stay rule-based (a small tagger can't do date arithmetic). FunctionGemma dropped.
 - **Location reminders → v2.** Picking a place needed a map, and maps need the network.
 - **Reminder style:** Notification by default, Alarm as a setting.
 - **Snooze:** 30 min, 1 h, Tomorrow 9 AM.
@@ -159,7 +158,7 @@ Every milestone is test-first: write the failing tests, then the code.
 - **Quick entry:** type chips (Note / Task, Reminder from M3). From M4 the rules pre-select one and the chips become an override.
 - **Testing:** unit tests run on the JVM; instrumented tests (DB, delete, alarms, UI) run on an emulator in GitHub Actions on every push.
 - **Working while you're away:** when something can only be checked on the phone, or a CI step stays broken, it's listed in [PHONE_CHECKS.md](PHONE_CHECKS.md) and work moves on.
-- **MiniLM training**, if the rules fail M4, may run in the cloud dev container (CPU), on sentences in `training/` only.
+- **MiniLM training** runs in the cloud dev container (CPU, ~35 min), on sentences generated in `training/` only.
 - **M4 result:** the rules pass all 253 required rows of the test set (13 of 34 `known_weak` rows too), so **MiniLM is not added**.
 - **Events are saved as reminders** until calendar sync (M7).
 - **Voice without sherpa-onnx (M5):** sherpa-onnx isn't on Maven Central, its GitHub downloads are blocked in the dev container, and it bundles its own ONNX Runtime. Moonshine's encoder + merged decoder and Silero VAD run directly on `onnxruntime-android` (~150 lines), tested on the JVM and on the emulator.

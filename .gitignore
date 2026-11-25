@@ -17,6 +17,8 @@ captures/
 
 # Model files (downloaded, not committed)
 *.onnx
+# ...except the intent model trained in this repo (training/README.md)
+!models/*.onnx
 *.ort
 *.tflite
 *.bin

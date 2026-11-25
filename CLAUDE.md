@@ -27,5 +27,6 @@ A local-first Android app for the Nothing Phone (3a): a better Essential Space. 
 
 - Work milestone by milestone, in the order in PLAN.md §5.
 - **Write the tests first, then the code.** Every feature or fix starts with a failing test: unit tests for rules and parsers, instrumented tests for the DB, delete and alarms.
-- A milestone is done when its features work on the phone/emulator and its tests pass. For milestone 4, that means `testdata/understanding_test.jsonl` passes (rows marked `known_weak` are reported, not required). Never tune rules just to chase a `known_weak` row, and never train on the test set.
+- A milestone is done when its features work on the phone/emulator and its tests pass. For milestone 4, that means `testdata/understanding_test.jsonl` passes (rows marked `known_weak` are reported, not required). Never tune rules or training data just to chase a `known_weak` row, and never train on the test set.
+- **Understanding is MiniLM** (trained in `training/`, committed in `models/`); dates stay rule-based. Retrain after changing intents or the generator, and re-run the test set.
 - Keep PLAN.md and EDGE_CASES.md up to date when a decision changes.

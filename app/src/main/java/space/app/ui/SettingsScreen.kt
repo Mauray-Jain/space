@@ -44,6 +44,13 @@ import space.app.data.ItemRepository
 @HiltViewModel
 class SettingsViewModel @Inject constructor(private val settings: Settings, private val repo: ItemRepository) : ViewModel() {
     val reminderStyle get() = settings.reminderStyle
+    val keyCode get() = settings.keyCode
+    val learningKey get() = settings.learningKey
+    var keyEnabled
+        get() = settings.keyEnabled
+        set(value) { settings.keyEnabled = value }
+
+    fun learnKey(on: Boolean) { settings.learningKey = on }
 
     fun setReminderStyle(style: ReminderStyle) {
         settings.reminderStyle = style
@@ -82,6 +89,8 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
                 }) { Text("Allow full-screen alarms") }
             }
 
+            EssentialKey(viewModel)
+
             Text("Reliability", style = MaterialTheme.typography.titleSmall)
             Text(
                 "Some phones stop apps in the background. Allow unrestricted battery use so reminders always ring.",
@@ -102,4 +111,41 @@ private fun isUnrestricted(context: Context) =
 @SuppressLint("BatteryLife") // Reminders must ring on time; see EDGE_CASES.md §8.
 private fun requestUnrestricted(context: Context) {
     context.startActivity(Intent(AndroidSettings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}")))
+}
+
+/** Turning on the key service and teaching it which key is the Essential Key (its code isn't documented). */
+@Composable
+private fun EssentialKey(viewModel: SettingsViewModel) {
+    val context = LocalContext.current
+    var learning by remember { mutableStateOf(viewModel.learningKey) }
+    var keyCode by remember { mutableStateOf(viewModel.keyCode) }
+    var enabled by remember { mutableStateOf(viewModel.keyEnabled) }
+    val serviceOn = space.app.capture.KeyService.instance != null
+    // Waits for the key press the service records.
+    androidx.compose.runtime.LaunchedEffect(learning) {
+        while (learning) {
+            kotlinx.coroutines.delay(300)
+            if (!viewModel.learningKey) { learning = false; keyCode = viewModel.keyCode }
+        }
+    }
+    Text("Essential Key", style = MaterialTheme.typography.titleSmall)
+    Text("Press to save the screen, hold to speak, double-press to open Space.", style = MaterialTheme.typography.bodySmall)
+    if (!serviceOn) {
+        OutlinedButton(onClick = { context.startActivity(Intent(AndroidSettings.ACTION_ACCESSIBILITY_SETTINGS)) }) { Text("Turn on in Accessibility settings") }
+        return
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("Use the key", Modifier.weight(1f))
+        androidx.compose.material3.Switch(checked = enabled, onCheckedChange = { enabled = it; viewModel.keyEnabled = it })
+    }
+    when {
+        learning -> Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Press the Essential Key now…", Modifier.weight(1f))
+            TextButton(onClick = { viewModel.learnKey(false); learning = false }) { Text("Cancel") }
+        }
+        else -> Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(if (keyCode < 0) "Key not set up yet" else "Key set (code $keyCode)", Modifier.weight(1f))
+            OutlinedButton(onClick = { viewModel.learnKey(true); learning = true }) { Text(if (keyCode < 0) "Set up" else "Set up again") }
+        }
+    }
 }

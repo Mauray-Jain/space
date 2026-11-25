@@ -32,3 +32,15 @@ Things CI's emulator can't cover. Try them on the Nothing Phone (3a) when you ca
 - [ ] During a phone call, Speak says "Can't record during a call".
 - [ ] Open a saved voice item: "Play recording" plays what you said. Delete it: the recording goes too.
 - [ ] Time a 10 s voice note on the phone (transcribing should take a second or two; report if it's slow).
+
+## Milestone 6
+- [ ] Settings → Essential Key → "Turn on in Accessibility settings", enable "Space: Essential Key". Back in Settings: "Set up", press the Essential Key once. It shows the key code. **Tell me the code** so I can make it the default.
+- [ ] Disable stock Essential Space first (ADB), or both will react.
+- [ ] Press the key on any screen: the sheet opens with the screenshot. Save it without typing: a "Screenshot" note appears and within a few seconds is renamed to its first line of text, with #tags for receipts/tickets/recipes.
+- [ ] In Chrome, press the key: the page's link is added to the note and is tappable in the list.
+- [ ] Screenshot an event poster with a date: it becomes a reminder and a "Reminder set" notification with Undo appears.
+- [ ] Drag on the screenshot to crop before saving; the saved image is cropped.
+- [ ] "Longer" on a long web page: the sheet comes back with a taller, stitched screenshot (check the joins look right).
+- [ ] Hold the key: the sheet opens already listening. Double-press: Space opens.
+- [ ] Press the key in a banking app or Netflix: "This app doesn't allow screenshots…" and you can still type or speak.
+- [ ] Search for a word that's only inside a screenshot: it's found.

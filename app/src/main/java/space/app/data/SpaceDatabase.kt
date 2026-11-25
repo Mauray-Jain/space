@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
     autoMigrations = [
         AutoMigration(from = 1, to = 2, spec = SpaceDatabase.V1to2::class),
         AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 3, to = 4, spec = SpaceDatabase.V3to4::class),
     ],
 )
 @TypeConverters(Converters::class)
@@ -32,8 +33,18 @@ abstract class SpaceDatabase : RoomDatabase() {
         }
     }
 
+    /** The search index now covers screenshot text too: rebuild it with both columns. */
+    class V3to4 : AutoMigrationSpec {
+        override fun onPostMigrate(connection: SQLiteConnection) {
+            listOf("items_ai", "items_ad", "items_au").forEach { connection.execSQL("DROP TRIGGER IF EXISTS $it") }
+            connection.execSQL("DROP TABLE IF EXISTS item_fts")
+            SEARCH_INDEX_SQL.forEach { connection.execSQL(it) }
+            connection.execSQL("INSERT INTO item_fts(item_fts) VALUES('rebuild')")
+        }
+    }
+
     companion object {
-        const val VERSION = 3
+        const val VERSION = 4
 
         // Bundled driver: Android 12's own SQLite has no FTS5 trigram tokenizer.
         fun build(context: Context, name: String = "space.db"): SpaceDatabase =
@@ -60,13 +71,13 @@ private object Setup : RoomDatabase.Callback() {
  * transaction as the row change.
  */
 val SEARCH_INDEX_SQL = listOf(
-    "CREATE VIRTUAL TABLE item_fts USING fts5(text, content='items', content_rowid='id', tokenize='trigram')",
+    "CREATE VIRTUAL TABLE item_fts USING fts5(text, ocrText, content='items', content_rowid='id', tokenize='trigram')",
     "INSERT INTO item_fts(item_fts, rank) VALUES('secure-delete', 1)",
     "CREATE TRIGGER items_ai AFTER INSERT ON items BEGIN " +
-        "INSERT INTO item_fts(rowid, text) VALUES (new.id, new.text); END",
+        "INSERT INTO item_fts(rowid, text, ocrText) VALUES (new.id, new.text, new.ocrText); END",
     "CREATE TRIGGER items_ad AFTER DELETE ON items BEGIN " +
-        "INSERT INTO item_fts(item_fts, rowid, text) VALUES ('delete', old.id, old.text); END",
+        "INSERT INTO item_fts(item_fts, rowid, text, ocrText) VALUES ('delete', old.id, old.text, old.ocrText); END",
     "CREATE TRIGGER items_au AFTER UPDATE ON items BEGIN " +
-        "INSERT INTO item_fts(item_fts, rowid, text) VALUES ('delete', old.id, old.text); " +
-        "INSERT INTO item_fts(rowid, text) VALUES (new.id, new.text); END",
+        "INSERT INTO item_fts(item_fts, rowid, text, ocrText) VALUES ('delete', old.id, old.text, old.ocrText); " +
+        "INSERT INTO item_fts(rowid, text, ocrText) VALUES (new.id, new.text, new.ocrText); END",
 )

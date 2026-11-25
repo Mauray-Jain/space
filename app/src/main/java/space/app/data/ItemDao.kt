@@ -30,7 +30,7 @@ interface ItemDao {
     @Query("SELECT items.* FROM items JOIN item_fts ON item_fts.rowid = items.id WHERE item_fts MATCH :match ORDER BY rank")
     suspend fun match(match: String): List<Item>
 
-    @Query("SELECT * FROM items WHERE text LIKE '%' || :text || '%' ESCAPE '\\'")
+    @Query("SELECT * FROM items WHERE text LIKE '%' || :text || '%' ESCAPE '\\' OR ocrText LIKE '%' || :text || '%' ESCAPE '\\'")
     suspend fun like(text: String): List<Item>
 
     // Only ItemRepository.delete may call this.

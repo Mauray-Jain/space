@@ -50,5 +50,12 @@ class SearchTest {
 
     @Test fun severalWordsMustAllMatch() = assertEquals(listOf("wifi password hunter2"), search("hunter wifi"))
 
+    @Test fun textInsideAScreenshot() = runBlocking {
+        val id = repo.add(ItemType.NOTE, "screenshot")
+        repo.update(repo.get(id)!!.copy(ocrText = "PNR 4521337890 Mumbai Central"))
+        assertEquals(listOf("screenshot"), search("mumbai"))
+        assertEquals(listOf("screenshot"), repo.search("PN").map { it.text })
+    }
+
     @Test fun quotesAndOperatorsAreJustText() = assertEquals(emptyList<String>(), search("\"OR* NEAR("))
 }

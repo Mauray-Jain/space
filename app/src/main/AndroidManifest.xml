@@ -74,6 +74,19 @@
         </receiver>
 
         <service
+            android:name=".capture.KeyService"
+            android:exported="true"
+            android:label="@string/key_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/key_service" />
+        </service>
+
+        <service
             android:name=".capture.QuickEntryTileService"
             android:exported="true"
             android:icon="@drawable/ic_capture"

@@ -12,8 +12,8 @@ import org.junit.Test
 /** Runs the real models (downloaded by the build) on ONNX Runtime's desktop build. */
 class VoiceTest {
     companion object {
-        private val models = File(System.getProperty("models.dir"))
-        private val clip = readWav(File(System.getProperty("testAudio.dir"), "librispeech.wav").readBytes())
+        private val models = File(System.getProperty("models.dir")!!)
+        private val clip = readWav(File(System.getProperty("testAudio.dir")!!, "librispeech.wav").readBytes())
         private lateinit var vad: Vad
         private lateinit var transcriber: Transcriber
 

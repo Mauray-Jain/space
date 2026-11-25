@@ -63,7 +63,7 @@ abstract class PrepareModels : DefaultTask() {
     fun prepare() {
         val src = downloads.get().asFile
         val out = outputDir.get().asFile.apply { deleteRecursively(); mkdirs() }
-        src.listFiles { f -> f.name.endsWith(".onnx") }!!.forEach { it.copyTo(File(out, it.name)) }
+        src.listFiles { f -> f.name.endsWith(".onnx") || f.name == "ocr-dict.txt" }!!.forEach { it.copyTo(File(out, it.name)) }
         @Suppress("UNCHECKED_CAST")
         val json = groovy.json.JsonSlurper().parse(File(src, "moonshine-tokenizer.json")) as Map<String, Any>
         @Suppress("UNCHECKED_CAST")
@@ -75,6 +75,7 @@ abstract class PrepareModels : DefaultTask() {
 }
 
 val moonshine = "https://huggingface.co/onnx-community/moonshine-base-ONNX/resolve/b1e9b6aae3c3c7298f10c3798393fdf38e8fbbad"
+val paddle = "https://huggingface.co/monkt/paddleocr-onnx/resolve/7b02d0a30a07ba2b92ad1ff5a8941ae2c633de65"
 val downloadModels by tasks.registering(DownloadFiles::class) {
     outputDir = layout.buildDirectory.dir("modelDownloads")
     files = mapOf(
@@ -82,6 +83,10 @@ val downloadModels by tasks.registering(DownloadFiles::class) {
         "moonshine-encoder.onnx" to "4edb38db96b52ddee5a3b25d2211bb6394f9a9a2d95f67bce0e8c861da018a4d $moonshine/onnx/encoder_model_int8.onnx",
         "moonshine-decoder.onnx" to "45febab0347ffbe1326459e092ae20a2cfda10ca33ab018b3c299247284de61b $moonshine/onnx/decoder_model_merged_int8.onnx",
         "moonshine-tokenizer.json" to "7b913404bdd039af4756783218af4440bc07fb7d6d8258d677e34f95b3ec416f $moonshine/tokenizer.json",
+        // PaddleOCR (Apache-2.0): PP-OCRv3 text detection 2.4 MB + PP-OCRv5 English recognition 7.8 MB.
+        "ocr-det.onnx" to "ee40e80071ba3a320d4efda75f3e22047a7d049e9bf7bcaaf9daea23fc21b935 $paddle/detection/v3/det.onnx",
+        "ocr-rec.onnx" to "4e16deb22c4da6468bdca539b2cd3c8687825538b67109177c47d359ab994cd7 $paddle/languages/english/rec.onnx",
+        "ocr-dict.txt" to "e025a66d31f327ba0c232e03f407ae8d105e1e709e7ccb3f408aa778c24e70d6 $paddle/languages/english/dict.txt",
         // Silero VAD v5 (MIT): 2 MB.
         "silero-vad.onnx" to "a4a068cd6cf1ea8355b84327595838ca748ec29a25bc91fc82e6c299ccdc5808 https://huggingface.co/onnx-community/silero-vad/resolve/e71cae966052b992a7eca6b17738916ce0eca4ec/onnx/model.onnx",
     )
@@ -139,6 +144,8 @@ dependencies {
 
     implementation(libs.libphonenumber)
     implementation(libs.onnxruntime.android)
+    implementation(libs.zxing.core)
+    implementation(libs.work.runtime)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.serialization.json)

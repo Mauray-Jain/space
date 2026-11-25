@@ -12,8 +12,11 @@ fun rankByTrigrams(query: String, candidates: List<Item>): List<Item> {
     val pieces = query.split(Regex("""\s+""")).flatMap { trigrams(it) }.distinct()
     val needed = maxOf(2, (pieces.size + 2) / 3)
     return candidates
-        .map { item -> item to pieces.count { it in item.text.lowercase() } }
+        .map { item -> item to pieces.count { it in item.searchable.lowercase() } }
         .filter { (_, shared) -> shared >= needed }
         .sortedByDescending { (_, shared) -> shared }
         .map { (item, _) -> item }
 }
+
+/** All the text search looks at: what you wrote and what was read from its screenshot. */
+val Item.searchable: String get() = if (ocrText == null) text else "$text\n$ocrText"

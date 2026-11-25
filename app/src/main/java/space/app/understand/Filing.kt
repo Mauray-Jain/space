@@ -36,13 +36,33 @@ fun preview(u: Understood, formatTime: (LocalDateTime) -> String): String = when
 
 /** Saves a capture from the quick-entry sheet: the automatic reading if it was kept, else exactly what was picked. */
 @javax.inject.Singleton
-class Filer @javax.inject.Inject constructor(private val repo: space.app.data.ItemRepository) {
-    /** [audio] (a voice capture) is kept in the first item's folder, so it goes with it on delete. */
-    suspend fun file(type: ItemType, text: String, remindAt: LocalDateTime?, understood: Understood?, audio: FloatArray? = null): List<Long> {
+class Filer @javax.inject.Inject constructor(
+    private val repo: space.app.data.ItemRepository,
+    private val screenshots: space.app.capture.Screenshots,
+) {
+    /**
+     * [audio] (a voice capture) and [screenshot] are kept in the first item's folder, so they go
+     * with it on delete; [source] (the page's link) is added to its text. A screenshot is then
+     * read by one short job (OCR, QR, labels).
+     */
+    suspend fun file(
+        type: ItemType, text: String, remindAt: LocalDateTime?, understood: Understood?,
+        audio: FloatArray? = null, screenshot: java.io.File? = null, source: String? = null, app: String? = null,
+    ): List<Long> {
         val ids = if (understood != null) {
             drafts(understood, text).map { repo.add(it.type, it.text, it.remindAt, it.repeat) }
         } else {
             listOf(repo.add(type, text, remindAt))
+        }
+        val first = ids.firstOrNull() ?: return ids
+        if (source != null) repo.get(first)?.let { if (source !in it.text) repo.update(it.copy(text = it.text + "\n" + source)) }
+        if (screenshot != null) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val dir = repo.filesDir(first).apply { mkdirs() }
+                screenshot.copyTo(java.io.File(dir, space.app.capture.Screenshots.FILE), overwrite = true)
+                screenshot.delete()
+            }
+            screenshots.processLater(first, app)
         }
         if (audio != null) ids.firstOrNull()?.let { id ->
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {

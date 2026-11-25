@@ -25,4 +25,6 @@ data class Item(
     val snoozedUntil: LocalDateTime? = null,
     /** A one-off reminder that has already fired. */
     @ColumnInfo(defaultValue = "0") val notified: Boolean = false,
+    /** Text read from the item's screenshot or photo, so it can be searched (EDGE_CASES.md §10). */
+    val ocrText: String? = null,
 )

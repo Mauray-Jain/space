@@ -69,6 +69,10 @@ fun QuickEntrySheet(
     onMic: () -> Unit,
     initialType: ItemType = ItemType.NOTE,
     listenAtStart: Boolean = false,
+    /** Shown above the text, e.g. a screenshot. */
+    header: (@Composable () -> Unit)? = null,
+    /** Save is allowed with no text (a screenshot on its own). */
+    canSaveEmpty: Boolean = false,
 ) {
     var text by rememberSaveable { mutableStateOf(initialText) }
     var manualType by rememberSaveable { mutableStateOf<ItemType?>(initialType.takeIf { it != ItemType.NOTE }) }
@@ -92,6 +96,7 @@ fun QuickEntrySheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp).imePadding(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            header?.invoke()
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
@@ -126,7 +131,7 @@ fun QuickEntrySheet(
                 val asks = auto && u?.type == Kind.QUESTION
                 Button(
                     onClick = { onSave(Capture(type, text, remindAt.takeIf { type == ItemType.REMINDER }, u.takeIf { auto })) },
-                    enabled = text.isNotBlank(),
+                    enabled = text.isNotBlank() || canSaveEmpty,
                 ) { Text(if (asks) "Show" else "Save") }
             }
         }

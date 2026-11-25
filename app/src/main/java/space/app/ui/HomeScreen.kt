@@ -244,7 +244,7 @@ private fun ItemCard(item: Item, selected: Boolean, onClick: () -> Unit, onLongC
             }
             Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
                 Text(
-                    text = checklist.body.ifEmpty { item.text },
+                    text = linkified(checklist.body.ifEmpty { item.text }),
                     maxLines = 6,
                     overflow = TextOverflow.Ellipsis,
                     textDecoration = if (item.done) TextDecoration.LineThrough else null,
@@ -260,5 +260,16 @@ private fun ItemCard(item: Item, selected: Boolean, onClick: () -> Unit, onLongC
                 }
             }
         }
+    }
+}
+
+/** Links in an item's text open in the browser (wishlist #7). */
+fun linkified(text: String): androidx.compose.ui.text.AnnotatedString = androidx.compose.ui.text.buildAnnotatedString {
+    append(text)
+    space.app.understand.links(text).forEach { url ->
+        val raw = url.removePrefix("https://")
+        val start = text.indexOf(if (raw in text) raw else url).takeIf { it >= 0 } ?: return@forEach
+        val end = start + if (raw in text) raw.length else url.length
+        addLink(androidx.compose.ui.text.LinkAnnotation.Url(url), start, end)
     }
 }

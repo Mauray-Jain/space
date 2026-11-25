@@ -55,7 +55,7 @@ class ItemRepository @Inject constructor(
         if (words.isEmpty()) return emptyList()
         if (words.any { it.length < 3 }) {
             val escaped = words.maxBy { it.length }.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-            return dao.like(escaped).filter { item -> words.all { item.text.contains(it, ignoreCase = true) } }
+            return dao.like(escaped).filter { item -> words.all { item.searchable.contains(it, ignoreCase = true) } }
         }
         val exact = dao.match(words.joinToString(" ") { quote(it) })
         if (exact.isNotEmpty()) return exact

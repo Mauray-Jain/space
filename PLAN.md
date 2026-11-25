@@ -43,8 +43,8 @@ Fully open source, no Google ML Kit, nothing sent anywhere. The app has **no INT
 | ↳ only if the rules fail rows of the M4 test set | MiniLM-L6 fine-tuned for intent + slot tagging, int8 | ~25 MB | Only if needed |
 | Dates, times, repeats, fuzzy times | **Own rule-based parser** (port of the *chrono* library + our additions) | ~0 | Yes |
 | Phones, emails, URLs, money | **libphonenumber** + small regexes (not `Patterns`, so the rules run as JVM unit tests) | ~1 MB | Yes |
-| Text in screenshots & photos | **PaddleOCR mobile** (PP-OCR) on ONNX Runtime | ~10–15 MB | Yes |
-| QR codes / barcodes | **ZXing** (zxing-cpp) | <1 MB | Yes |
+| Text in screenshots & photos | **PaddleOCR**: PP-OCRv3 detection + PP-OCRv5 English recognition (monkt/paddleocr-onnx, Apache-2.0) on ONNX Runtime | ~10 MB | Yes |
+| QR codes / barcodes | **ZXing** core (pure Java, so it runs in JVM tests) | <1 MB | Yes |
 | Tagging captures | Rules on OCR text + the source app's name | ~0 | Yes |
 | Names/companies on business cards | Heuristic (largest/top line) | ~0 | Yes |
 | Search | SQLite **FTS5 with trigram tokenizer**, via Room's `BundledSQLiteDriver` (Android's own SQLite on API 31 is too old for trigram) | ~1–2 MB | Yes |
@@ -164,6 +164,8 @@ Every milestone is test-first: write the failing tests, then the code.
 - **Events are saved as reminders** until calendar sync (M7).
 - **Voice without sherpa-onnx (M5):** sherpa-onnx isn't on Maven Central, its GitHub downloads are blocked in the dev container, and it bundles its own ONNX Runtime. Moonshine's encoder + merged decoder and Silero VAD run directly on `onnxruntime-android` (~150 lines), tested on the JVM and on the emulator.
 - **Voice details:** recordings over ~20 s are cut at pauses before transcribing; under 1 s of speech is discarded; the WAV is kept in the item's folder (playable in the editor, deleted with it).
+- **Screen capture (M6):** the Essential Key's key code isn't documented, so Settings learns it ("press the key now"). Press = screenshot, hold (0.5 s) = voice, double (0.3 s) = open. Screenshots stay in the app's cache until saved, then move to the item's folder; never the Gallery. One expedited WorkManager job per capture reads it (OCR, QR, labels) and files a flyer as a reminder with Undo/Edit. Screenshot text is a column in the search index.
+- **Long screenshots** scroll with an accessibility gesture, up to 5 screens, and are joined at their overlap; toolbars that don't move are kept once.
 - **"Confirm first" setting** waits for captures that have no sheet (voice via the key in M5, screenshots in M6). Typed captures already show what they'll become before Save, and the chips override it.
 - **Bundled SQLite checked (M1):** `androidx.sqlite:sqlite-bundled` 2.7.1 is SQLite 3.50.1 with FTS5 and `SECURE_DELETE` compiled in; the trigram tokenizer works.
 

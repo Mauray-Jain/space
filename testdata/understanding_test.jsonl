@@ -285,3 +285,6 @@
 {"id": "t285", "ref": "§3", "source": "text", "now": "2026-11-25T14:00", "input": "Priya's number is 98200 12345", "expect": {"type": "note", "phones": ["+919820012345"]}}
 {"id": "t286", "ref": "§3", "source": "text", "now": "2026-11-25T14:00", "input": "landlord email: kapoor.homes@gmail.com", "expect": {"type": "note", "emails": ["kapoor.homes@gmail.com"]}}
 {"id": "t287", "ref": "§3", "source": "text", "now": "2026-11-25T14:00", "input": "recipe https://example.com/dal-makhani", "expect": {"type": "note", "links": ["https://example.com/dal-makhani"]}}
+{"id": "t288", "ref": "§3", "source": "text", "now": "2026-11-25T14:00", "input": "buy multigrain bread and peanut butter", "expect": {"type": "list", "items": ["multigrain bread", "peanut butter"]}}
+{"id": "t289", "ref": "§3", "source": "text", "now": "2026-11-25T14:00", "input": "need jasmine rice, unsweetened almond milk and eggs", "expect": {"type": "list", "items": ["jasmine rice", "unsweetened almond milk", "eggs"]}}
+{"id": "t290", "ref": "§3", "source": "voice", "now": "2026-11-25T14:00", "input": "buy eggs bread the multigrain one and milk", "expect": {"type": "list", "items": ["eggs", "bread the multigrain one", "milk"]}}

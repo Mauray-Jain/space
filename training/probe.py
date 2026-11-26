@@ -48,6 +48,12 @@ PROBES = [
     ("milk eggs coffee", "list", ["milk", "eggs", "coffee"]),
     ("book flights to goa for diwali", "task", "book flights to goa for diwali"),
     ("did i already pay the maid", "question_search", "the maid"),
+    # round 3: items with describing words, found on the phone
+    ("buy eggs, bread whole wheat one and milk and tofu", "list", ["eggs", "bread whole wheat one", "milk", "tofu"]),
+    ("buy whole wheat bread", "list", ["whole wheat bread"]),
+    ("get sourdough bread and cherry tomatoes", "list", ["sourdough bread", "cherry tomatoes"]),
+    ("we need free range eggs and skim milk", "list", ["free range eggs", "skim milk"]),
+    ("pick up the big pack of rice and dark chocolate", "list", ["the big pack of rice", "dark chocolate"]),
 ]
 
 def main(model, vocab):

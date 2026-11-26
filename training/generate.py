@@ -51,6 +51,10 @@ ITEMS = ["milk", "eggs", "bread", "butter", "cheese", "yogurt", "curd", "paneer"
          "coconut oil", "hand wash", "kitchen roll", "cotton buds", "soy sauce", "corn flakes", "sparkling water", "dish tabs",
          "capsule coffee", "face wash", "baby wipes", "light bulbs", "aa batteries", "trash bags"]
 QUANT = ["2 litres of {i}", "a dozen {i}", "1 kg of {i}", "a packet of {i}", "two {i}", "a bottle of {i}", "half a kg of {i}", "3 {i}"]
+# Describing words, so "whole wheat bread" stays one item. Kept apart from the test set's (multigrain, jasmine, unsweetened).
+MODS = ["whole wheat", "low fat", "full cream", "toned", "skimmed", "basmati", "brown", "white", "red", "green", "fresh", "frozen",
+        "organic", "unsalted", "salted", "sliced", "boneless", "ripe", "raw", "dark", "greek", "plain", "extra virgin", "large",
+        "small", "baby", "spicy", "sweet", "roasted", "instant"]
 PAIRS = ["salt and pepper", "bread and butter", "mac and cheese", "fish and chips", "milk and cookies"]
 HOLIDAYS = ["diwali", "holi", "christmas", "eid", "new year's day", "my birthday", "our anniversary", "new year's eve", "raksha bandhan"]
 PLACES = ["the pharmacy", "the supermarket", "the office", "the bank", "home", "work", "the mall", "the station", "the airport"]
@@ -172,6 +176,8 @@ def items_list():
         r = random.random()
         if r < 0.15: its.append(pick(QUANT).replace("{i}", pick(ITEMS)))
         elif r < 0.22: its.append(pick(PAIRS))
+        elif r < 0.34: its.append(f"{pick(MODS)} {pick(ITEMS)}")
+        elif r < 0.40: its.append(pick(["{i} {m} one", "{i} the {m} one", "{i} the {m} kind", "{i} {m} ones"]).format(i=pick(ITEMS), m=pick(MODS)))
         else: its.append(pick(ITEMS))
     return its
 

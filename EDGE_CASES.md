@@ -55,6 +55,7 @@ This list is the source of the **milestone 4 test set**, [testdata/understanding
 | "buy milk, eggs and bread" | 3 items on the shopping list | 🔧 | "buy/grab/get/need" + split on commas and "and" |
 | "buy a birthday gift for Sam" | Task, not a shopping item | ⚠️ 🔧 | Rule: more than ~3 words per item or a "for/before" clause → task. Will sometimes misfile; Edit fixes it. |
 | "salt and pepper" in a list | One item, not two | ⚠️ | Small list of common pairs; otherwise splits. Known weakness. |
+| "multigrain bread", "unsweetened almond milk", "bread, the multigrain one" | One item each, describing words kept | 🔧 | Found on the phone: the first model split "whole wheat bread" in two. The generator now puts describing words before (and after) items. |
 | "what's on my grocery list?" | Opens the shopping list | 🔧 | Question words + list name |
 | "when is the dentist?" | Shows the dentist event | 🔧 | Question → search |
 | "don't remind me about the gym anymore" | Delete/stop a reminder | ❌ | v1 doesn't edit by voice. Saved as a note. |

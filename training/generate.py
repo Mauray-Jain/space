@@ -51,10 +51,46 @@ ITEMS = ["milk", "eggs", "bread", "butter", "cheese", "yogurt", "curd", "paneer"
          "coconut oil", "hand wash", "kitchen roll", "cotton buds", "soy sauce", "corn flakes", "sparkling water", "dish tabs",
          "capsule coffee", "face wash", "baby wipes", "light bulbs", "aa batteries", "trash bags"]
 QUANT = ["2 litres of {i}", "a dozen {i}", "1 kg of {i}", "a packet of {i}", "two {i}", "a bottle of {i}", "half a kg of {i}", "3 {i}"]
-# Describing words, so "whole wheat bread" stays one item. Kept apart from the test set's (multigrain, jasmine, unsweetened).
-MODS = ["whole wheat", "low fat", "full cream", "toned", "skimmed", "basmati", "brown", "white", "red", "green", "fresh", "frozen",
-        "organic", "unsalted", "salted", "sliced", "boneless", "ripe", "raw", "dark", "greek", "plain", "extra virgin", "large",
-        "small", "baby", "spicy", "sweet", "roasted", "instant"]
+# Describing words, so "whole wheat bread" stays one item. Many and varied, so the model learns "describing words +
+# item" rather than a word list. Kept apart from the test set (multigrain, jasmine, unsweetened, "a new phone charger")
+# and from probe.py's (sourdough, cherry, free range, skim, big).
+MODS = [
+    # kinds and varieties
+    "whole wheat", "basmati", "brown", "white", "red", "green", "yellow", "black", "purple", "golden", "arborio", "sona masoori",
+    "kolam", "wild", "long grain", "short grain", "steel cut", "rolled", "quick cook", "alphonso", "kesar", "granny smith",
+    "fuji", "gala", "baby", "button", "shiitake", "portobello", "roma", "plum", "heirloom", "vine", "iceberg", "romaine",
+    "red leaf", "bell", "kashmiri", "bird's eye", "jalapeno", "thai", "sweet", "russet", "spring", "pearl",
+    # dairy and fat
+    "low fat", "full cream", "full fat", "toned", "double toned", "skimmed", "semi skimmed", "lactose free", "a2", "cultured",
+    "salted", "unsalted", "fat free", "high protein", "greek", "hung", "aged", "mature", "mild", "smoked", "grated", "shredded",
+    "sliced", "block", "cream", "cottage", "processed", "mozzarella", "cheddar", "parmesan",
+    # processing and state
+    "fresh", "frozen", "chilled", "dried", "canned", "tinned", "pickled", "roasted", "toasted", "salted", "boneless", "skinless",
+    "minced", "diced", "chopped", "peeled", "deseeded", "cold pressed", "virgin", "extra virgin", "refined", "filtered",
+    "instant", "ready to eat", "precooked", "par boiled", "sprouted", "soaked", "ground", "whole", "crushed", "powdered",
+    "raw", "ripe", "unripe", "seedless", "pitted", "halved", "organic", "farm fresh", "cage free",
+    "grass fed", "wild caught", "gluten free", "sugar free", "no added sugar", "low sodium", "decaf", "caffeine free", "vegan",
+    # flavour
+    "spicy", "plain", "masala", "garlic", "chilli", "lemon", "mint", "vanilla", "chocolate", "strawberry", "mango", "honey",
+    "salt and vinegar", "sour cream", "peri peri", "cheese", "tomato", "ginger", "cardamom", "rose", "caramel", "hazelnut",
+    "dark", "milk", "salted caramel", "mixed fruit", "berry", "orange", "apple", "coconut", "almond", "oat", "soy",
+    # size and pack
+    "large", "small", "medium", "jumbo", "mini", "family pack", "travel size", "refill", "value pack", "single serve",
+    "1 litre", "500 ml", "250 g", "two litre", "king size", "party size", "bulk", "loose", "bottled", "boxed",
+    # household
+    "liquid", "fragrance free", "lavender", "lemon scented", "anti dandruff", "sensitive", "whitening", "herbal", "unscented",
+    "heavy duty", "biodegradable", "reusable", "rechargeable", "triple ply", "two ply", "scented", "antibacterial", "mild baby",
+    # brands (typed and spoken)
+    "Amul", "Mother Dairy", "Britannia", "Maggi", "Tata", "Aashirvaad", "Fortune", "Nestle", "Kellogg's", "Heinz", "Dove",
+    "Colgate", "Surf Excel", "Ariel", "Lays", "Haldiram's", "MDH", "Everest", "Patanjali", "Nutella", "Kissan", "Parle",
+]
+MODS = sorted(set(MODS))
+def described():
+    """An item with describing words, before it ("low fat milk", "Amul toned milk") or after it ("bread the whole wheat one")."""
+    i = pick(ITEMS)
+    m = pick(MODS) if random.random() < 0.8 else f"{pick(MODS)} {pick(MODS)}"
+    if random.random() < 0.8: return f"{m} {i}"
+    return pick(["{i} {m} one", "{i} the {m} one", "{i} the {m} kind", "{i} {m} ones", "{i} the {m} ones"]).format(i=i, m=m)
 PAIRS = ["salt and pepper", "bread and butter", "mac and cheese", "fish and chips", "milk and cookies"]
 HOLIDAYS = ["diwali", "holi", "christmas", "eid", "new year's day", "my birthday", "our anniversary", "new year's eve", "raksha bandhan"]
 PLACES = ["the pharmacy", "the supermarket", "the office", "the bank", "home", "work", "the mall", "the station", "the airport"]
@@ -176,8 +212,7 @@ def items_list():
         r = random.random()
         if r < 0.15: its.append(pick(QUANT).replace("{i}", pick(ITEMS)))
         elif r < 0.22: its.append(pick(PAIRS))
-        elif r < 0.34: its.append(f"{pick(MODS)} {pick(ITEMS)}")
-        elif r < 0.40: its.append(pick(["{i} {m} one", "{i} the {m} one", "{i} the {m} kind", "{i} {m} ones"]).format(i=pick(ITEMS), m=pick(MODS)))
+        elif r < 0.45: its.append(described())
         else: its.append(pick(ITEMS))
     return its
 
